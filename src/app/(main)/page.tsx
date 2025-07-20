@@ -1,9 +1,26 @@
-import Image from "next/image";
+import {BreadcrumbPage, BreadCrumbs, PageContainer, PageHeader} from "@/components/layout/page-container";
+import {BreadcrumbLink} from "@/components/ui/breadcrumb";
+import {SectionCards} from "@/components/section-cards";
+import {ChartAreaInteractive} from "@/components/chart-area-interactive";
+import {DataTable} from "@/components/data-table";
+import data from "@/app/(main)/data.json";
+import {ROUTES} from "@/lib/constants";
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      Welcome to BluePay.
-    </div>
+      <PageContainer>
+          <PageHeader>
+              <BreadCrumbs>
+                  <BreadcrumbLink href={ROUTES.DASHBOARD}>Dashboard</BreadcrumbLink>
+                  <BreadcrumbPage>Transaction Report</BreadcrumbPage>
+              </BreadCrumbs>
+          </PageHeader>
+
+          <SectionCards/>
+          <div className="px-4 lg:px-6">
+              <ChartAreaInteractive/>
+          </div>
+          <DataTable data={data}/>
+      </PageContainer>
   );
 }

@@ -6,3 +6,21 @@ export const ENV_VARIABLES = {
   NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || '',
   NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'http://localhost:713',
 } as const;
+
+
+export const ROUTES = {
+  DASHBOARD: '/',
+  AUTH: {
+    LOGIN: '/auth/login',
+    REGISTER: '/auth/register',
+    FORGOT_PASSWORD: '/auth/forgot-password',
+    RESET_PASSWORD: '/auth/reset-password',
+  },
+
+  TRANSACTIONS: {
+    INDEX: '/transactions',
+    CREATE: '/transactions/create',
+    EDIT: (id: string) => `/transactions/edit/${id}`,
+    VIEW: (id: string) => `/transactions/view/${id}`,
+  }
+} as const;
