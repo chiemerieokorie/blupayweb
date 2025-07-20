@@ -9,8 +9,15 @@ interface LayoutProps {
 
 const Layout = (props: LayoutProps) => {
     return (
-        <SidebarProvider>
-            <AppSidebar/>
+        <SidebarProvider
+            style={
+                {
+                    "--sidebar-width": "calc(var(--spacing) * 72)",
+                    "--header-height": "calc(var(--spacing) * 12)",
+                } as React.CSSProperties
+            }
+        >
+            <AppSidebar variant="inset"/>
             <SidebarInset>
                 {props.children}
             </SidebarInset>
