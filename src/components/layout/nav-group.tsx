@@ -12,6 +12,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { useActiveRoute } from "@/hooks/use-active-route"
 
 export function NavGroup({
   items,
@@ -24,6 +25,7 @@ export function NavGroup({
     icon: Icon
   }[]
 }) {
+  const { isActiveRoute } = useActiveRoute()
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
@@ -33,7 +35,7 @@ export function NavGroup({
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton asChild>
+            <SidebarMenuButton asChild isActive={isActiveRoute(item.url)}>
               <a href={item.url}>
                 <item.icon />
                 <span>{item.name}</span>
