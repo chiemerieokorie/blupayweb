@@ -1,26 +1,10 @@
-import {BreadcrumbPage, BreadCrumbs, PageContainer, PageHeader} from "@/components/layout/page-container";
-import {BreadcrumbLink} from "@/components/ui/breadcrumb";
-import {SectionCards} from "@/components/section-cards";
-import {ChartAreaInteractive} from "@/components/chart-area-interactive";
-import {DataTable} from "@/components/data-table";
-import data from "@/app/(main)/data.json";
-import {ROUTES} from "@/lib/constants";
+import { PageContainer } from "@/components/layout/page-container";
+import Dashboard from "@/features/dashboard";
 
 export default function Home() {
   return (
-      <PageContainer>
-          <PageHeader>
-              <BreadCrumbs>
-                  <BreadcrumbLink href={ROUTES.DASHBOARD}>Dashboard</BreadcrumbLink>
-                  <BreadcrumbPage>Transaction Report</BreadcrumbPage>
-              </BreadCrumbs>
-          </PageHeader>
-
-          <SectionCards/>
-          <div className="px-4 lg:px-6">
-              <ChartAreaInteractive/>
-          </div>
-          <DataTable data={data}/>
-      </PageContainer>
+    <PageContainer>
+      <Dashboard />
+    </PageContainer>
   );
 }
