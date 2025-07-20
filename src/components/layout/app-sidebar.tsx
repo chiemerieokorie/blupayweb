@@ -2,182 +2,136 @@
 
 import * as React from "react"
 import {
-  IconCamera,
-  IconChartBar,
-  IconDashboard,
-  IconDatabase,
-  IconFileAi,
-  IconFileDescription,
-  IconFileWord,
-  IconFolder,
-  IconHelp,
-  IconInnerShadowTop,
-  IconListDetails,
-  IconReport,
-  IconSearch,
-  IconSettings,
-  IconUsers,
+    IconAffiliate,
+    IconBuildingBank,
+    IconCreditCardPay,
+    IconDashboard,
+    IconDatabase,
+    IconFileAi,
+    IconFileDescription,
+    IconFileWord,
+    IconHelp,
+    IconInnerShadowTop,
+    IconSquareRoundedPercentage,
+    IconReport,
+    IconSearch,
+    IconSettings,
+    IconUserCircle,
+    IconUsers,
+    IconDeviceTabletDollar,
 } from "@tabler/icons-react"
 
-import { NavDocuments } from "@/components/layout/nav-documents"
-import { NavMain } from "@/components/layout/nav-main"
-import { NavSecondary } from "@/components/layout/nav-secondary"
-import { NavUser } from "@/components/layout/nav-user"
+import {NavGroup} from "@/components/layout/nav-group"
+import {NavMain} from "@/components/layout/nav-main"
+import {NavSecondary} from "@/components/layout/nav-secondary"
+import {NavUser} from "@/components/layout/nav-user"
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import {ROUTES} from "@/lib/constants";
 
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "#",
-      icon: IconDashboard,
+    user: {
+        name: "Samson A",
+        email: "s.akande@bluepenguin.com",
+        avatar: "/avatars/shadcn.jpg",
     },
-    {
-      title: "Lifecycle",
-      url: "#",
-      icon: IconListDetails,
-    },
-    {
-      title: "Analytics",
-      url: "#",
-      icon: IconChartBar,
-    },
-    {
-      title: "Projects",
-      url: "#",
-      icon: IconFolder,
-    },
-    {
-      title: "Team",
-      url: "#",
-      icon: IconUsers,
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: IconCamera,
-      isActive: true,
-      url: "#",
-      items: [
+    navMain: [
         {
-          title: "Active Proposals",
-          url: "#",
+            title: "Dashboard",
+            url: ROUTES.DASHBOARD,
+            icon: IconDashboard,
         },
         {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: IconFileDescription,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
+            title: "Transactions",
+            url: ROUTES.TRANSACTIONS.INDEX,
+            icon: IconCreditCardPay,
         },
         {
-          title: "Archived",
-          url: "#",
+            title: "Commissions",
+            url: ROUTES.COMMISSIONS.INDEX,
+            icon: IconSquareRoundedPercentage,
         },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: IconFileAi,
-      url: "#",
-      items: [
+    ],
+    management: [
         {
-          title: "Active Proposals",
-          url: "#",
+            name: "Merchants",
+            url: ROUTES.MERCHANTS.INDEX,
+            icon: IconAffiliate,
         },
         {
-          title: "Archived",
-          url: "#",
+            name: "Users",
+            url: ROUTES.USERS.INDEX,
+            icon: IconUsers,
         },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "#",
-      icon: IconSettings,
-    },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: IconHelp,
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: IconSearch,
-    },
-  ],
-  documents: [
-    {
-      name: "Data Library",
-      url: "#",
-      icon: IconDatabase,
-    },
-    {
-      name: "Reports",
-      url: "#",
-      icon: IconReport,
-    },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: IconFileWord,
-    },
-  ],
+        {
+            name: "Partner Banks",
+            url: ROUTES.PARTNER_BANKS.INDEX,
+            icon: IconBuildingBank,
+        },
+    ],
+    pos: [
+        {
+            name: "Terminals",
+            url: ROUTES.DEVICES.INDEX,
+            icon: IconDeviceTabletDollar,
+        },
+    ],
+    navSecondary: [
+        {
+            title: "Settings",
+            url: "#",
+            icon: IconSettings,
+        },
+        {
+            title: "Get Help",
+            url: "#",
+            icon: IconHelp,
+        },
+        {
+            title: "Search",
+            url: "#",
+            icon: IconSearch,
+        },
+    ],
+
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  return (
-    <Sidebar collapsible="offcanvas" {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
-            >
-              <a href="#">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">
+export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
+    return (
+        <Sidebar collapsible="offcanvas" {...props}>
+            <SidebarHeader>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton
+                            asChild
+                            className="data-[slot=sidebar-menu-button]:!p-1.5"
+                        >
+                            <a href="#">
+                                <IconInnerShadowTop className="!size-5"/>
+                                <span className="text-base font-semibold">
                   Blue Penguin
                 </span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
-      <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
-      </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={data.user} />
-      </SidebarFooter>
-    </Sidebar>
-  )
+                            </a>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarHeader>
+            <SidebarContent>
+                <NavMain items={data.navMain}/>
+                <NavGroup label={"Management"} items={data.management}/>
+                <NavGroup label={"POS"} items={data.pos}/>
+                <NavSecondary items={data.navSecondary} className="mt-auto"/>
+            </SidebarContent>
+            <SidebarFooter>
+                <NavUser user={data.user}/>
+            </SidebarFooter>
+        </Sidebar>
+    )
 }
