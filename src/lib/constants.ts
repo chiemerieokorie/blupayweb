@@ -35,6 +35,18 @@ export const ROUTES = {
         EDIT: (id: string) => `/merchants/edit/${id}`,
         VIEW: (id: string) => `/merchants/view/${id}`,
     },
+    SUB_MERCHANTS: {
+        INDEX: '/sub-merchants',
+        CREATE: '/sub-merchants/create',
+        EDIT: (id: string) => `/sub-merchants/edit/${id}`,
+        VIEW: (id: string) => `/sub-merchants/view/${id}`,
+    },
+    API_KEYS: {
+        INDEX: '/api-keys',
+        CREATE: '/api-keys/create',
+        EDIT: (id: string) => `/api-keys/edit/${id}`,
+        VIEW: (id: string) => `/api-keys/view/${id}`,
+    },
     USERS: {
         INDEX: '/users',
         CREATE: '/users/create',
@@ -53,6 +65,11 @@ export const ROUTES = {
         CREATE: '/devices/create',
         EDIT: (id: string) => `/devices/edit/${id}`,
         VIEW: (id: string) => `/devices/view/${id}`,
-    }
+    },
+    SETTINGS: {
+        INDEX: '/settings',
+        PROFILE: '/settings/profile',
+    },
+    HELP: "/help",
 
 } as const;
