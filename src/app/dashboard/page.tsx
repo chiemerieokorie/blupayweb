@@ -7,7 +7,7 @@ import {
     SidebarProvider
 } from "@/components/ui/sidebar"
 
-import {PageContainer, PageHeader, BreadCrumbs, BreadcrumbLink} from "@/components/page-layout"
+import {PageContainer, PageHeader, BreadCrumbs, BreadcrumbLink} from "@/components/page-container"
 
 
 import data from "./data.json"
