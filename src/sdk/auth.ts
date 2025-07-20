@@ -3,7 +3,8 @@ import { LoginRequest, LoginResponse, User, ApiResponse } from './types';
 
 export class AuthService {
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const response = await apiClient.post<LoginResponse>('/auth/login', credentials);
+    // TODO: Implement required userType for login
+    const response = await apiClient.post<LoginResponse>('/auth/login', {...credentials, userType: 'administrator'});
     if (response.status && response.data) {
       apiClient.setAuth(response.data.token);
       return response.data;
@@ -12,7 +13,8 @@ export class AuthService {
   }
 
   async loginWithPartnerBank(credentials: LoginRequest, partnerBank: string): Promise<LoginResponse> {
-    const response = await apiClient.post<LoginResponse>(`/auth/login/${partnerBank}`, credentials);
+    // TODO: Implement required userType for partner banks login
+    const response = await apiClient.post<LoginResponse>(`/auth/login/${partnerBank}`, {...credentials, userType: 'administrator'});
     if (response.status && response.data) {
       apiClient.setAuth(response.data.token, partnerBank);
       return response.data;
