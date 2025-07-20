@@ -1,12 +1,13 @@
 import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
 import { ApiResponse } from './types';
+import {ENV_VARIABLES} from "@/lib/constants";
 
 export class ApiClient {
   private client: AxiosInstance;
   private token: string | null = null;
   private partnerBankId: string | null = null;
 
-  constructor(baseURL: string = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api') {
+  constructor(baseURL: string = ENV_VARIABLES.NEXT_PUBLIC_API_URL) {
     this.client = axios.create({
       baseURL,
       timeout: 30000,
