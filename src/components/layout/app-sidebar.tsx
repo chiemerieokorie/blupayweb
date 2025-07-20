@@ -9,7 +9,6 @@ import {
     IconHelp,
     IconInnerShadowTop,
     IconSquareRoundedPercentage,
-    IconSearch,
     IconSettings,
     IconUsers,
     IconDeviceTabletDollar,
@@ -28,15 +27,11 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import {ROUTES} from "@/lib/constants";
+import {ROUTES} from "@/lib/constants"
+import { useAuth } from "@/features/auth/hooks";
 
-const data = {
-    user: {
-        name: "Samson A",
-        email: "s.akande@bluepenguin.com",
-        avatar: "/avatars/shadcn.jpg",
-    },
-    navMain: [
+const getNavigationData = (user: { firstName: string; lastName: string; email: string; role: string } | null) => {
+    const baseNavMain = [
         {
             title: "Dashboard",
             url: ROUTES.DASHBOARD,
@@ -52,8 +47,9 @@ const data = {
             url: ROUTES.COMMISSIONS.INDEX,
             icon: IconSquareRoundedPercentage,
         },
-    ],
-    management: [
+    ];
+
+    const adminManagement = [
         {
             name: "Merchants",
             url: ROUTES.MERCHANTS.INDEX,
@@ -69,35 +65,82 @@ const data = {
             url: ROUTES.PARTNER_BANKS.INDEX,
             icon: IconBuildingBank,
         },
-    ],
-    pos: [
+    ];
+
+    const merchantManagement = [
+        {
+            name: "Sub-Merchants",
+            url: ROUTES.SUB_MERCHANTS.INDEX,
+            icon: IconAffiliate,
+        },
+        {
+            name: "API Keys",
+            url: ROUTES.API_KEYS.INDEX,
+            icon: IconSettings,
+        },
+    ];
+
+    const partnerBankManagement = [
+        {
+            name: "Merchants",
+            url: ROUTES.MERCHANTS.INDEX,
+            icon: IconAffiliate,
+        },
+        {
+            name: "Devices",
+            url: ROUTES.DEVICES.INDEX,
+            icon: IconDeviceTabletDollar,
+        },
+    ];
+
+    const pos = [
         {
             name: "Terminals",
             url: ROUTES.DEVICES.INDEX,
             icon: IconDeviceTabletDollar,
         },
-    ],
-    navSecondary: [
+    ];
+
+    const navSecondary = [
         {
             title: "Settings",
-            url: "#",
+            url: ROUTES.SETTINGS.INDEX,
             icon: IconSettings,
         },
         {
             title: "Get Help",
-            url: "#",
+            url: ROUTES.HELP,
             icon: IconHelp,
         },
-        {
-            title: "Search",
-            url: "#",
-            icon: IconSearch,
-        },
-    ],
+    ];
 
-}
+    // Role-based navigation
+    let management: typeof adminManagement | typeof merchantManagement | typeof partnerBankManagement= [];
+    if (user?.role === 'ADMIN') {
+        management = adminManagement;
+    } else if (user?.role === 'MERCHANT') {
+        management = merchantManagement;
+    } else if (user?.role === 'PARTNER_BANK') {
+        management = partnerBankManagement;
+    }
+
+    return {
+        user: {
+            name: user ? `${user.firstName} ${user.lastName}` : "Guest",
+            email: user?.email || "",
+            avatar: "/avatars/default.jpg",
+        },
+        navMain: baseNavMain,
+        management,
+        pos: user?.role === 'ADMIN' || user?.role === 'PARTNER_BANK' ? pos : [],
+        navSecondary,
+    };
+};
 
 export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
+    const { user } = useAuth();
+    const data = getNavigationData(user);
+
     return (
         <Sidebar collapsible="offcanvas" {...props}>
             <SidebarHeader>
@@ -108,7 +151,7 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
                         >
                             <IconInnerShadowTop className="!size-5"/>
                             <span className="text-base font-semibold">
-                              Blue Penguin
+                              Blupay Africa
                             </span>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -116,8 +159,8 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
             </SidebarHeader>
             <SidebarContent>
                 <NavMain items={data.navMain}/>
-                <NavGroup label={"Management"} items={data.management}/>
-                <NavGroup label={"POS"} items={data.pos}/>
+                {data.management.length > 0 && <NavGroup label={"Management"} items={data.management}/>}
+                {data.pos.length > 0 && <NavGroup label={"POS"} items={data.pos}/>}
                 <NavSecondary items={data.navSecondary} className="mt-auto"/>
             </SidebarContent>
             <SidebarFooter>
