@@ -1,12 +1,12 @@
 "use client"
 
 import {
-  ArrowUpRight,
-  Link,
-  MoreHorizontal,
-  StarOff,
-  Trash2,
-} from "lucide-react"
+  IconDots,
+  IconFolder,
+  IconShare3,
+  IconTrash,
+  type Icon,
+} from "@tabler/icons-react"
 
 import {
   DropdownMenu,
@@ -25,57 +25,55 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
-export function NavFavorites({
-                               favorites,
-                             }: {
-  favorites: {
+export function NavDocuments({
+  items,
+}: {
+  items: {
     name: string
     url: string
-    emoji: string
+    icon: Icon
   }[]
 }) {
   const { isMobile } = useSidebar()
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Favorites</SidebarGroupLabel>
+      <SidebarGroupLabel>Documents</SidebarGroupLabel>
       <SidebarMenu>
-        {favorites.map((item) => (
+        {items.map((item) => (
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton asChild>
-              <a href={item.url} title={item.name}>
-                <span>{item.emoji}</span>
+              <a href={item.url}>
+                <item.icon />
                 <span>{item.name}</span>
               </a>
             </SidebarMenuButton>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuAction showOnHover>
-                  <MoreHorizontal />
+                <SidebarMenuAction
+                  showOnHover
+                  className="data-[state=open]:bg-accent rounded-sm"
+                >
+                  <IconDots />
                   <span className="sr-only">More</span>
                 </SidebarMenuAction>
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                className="w-56 rounded-lg"
+                className="w-24 rounded-lg"
                 side={isMobile ? "bottom" : "right"}
                 align={isMobile ? "end" : "start"}
               >
                 <DropdownMenuItem>
-                  <StarOff className="text-muted-foreground" />
-                  <span>Remove from Favorites</span>
+                  <IconFolder />
+                  <span>Open</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <IconShare3 />
+                  <span>Share</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Link className="text-muted-foreground" />
-                  <span>Copy Link</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <ArrowUpRight className="text-muted-foreground" />
-                  <span>Open in New Tab</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Trash2 className="text-muted-foreground" />
+                <DropdownMenuItem variant="destructive">
+                  <IconTrash />
                   <span>Delete</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -84,7 +82,7 @@ export function NavFavorites({
         ))}
         <SidebarMenuItem>
           <SidebarMenuButton className="text-sidebar-foreground/70">
-            <MoreHorizontal />
+            <IconDots className="text-sidebar-foreground/70" />
             <span>More</span>
           </SidebarMenuButton>
         </SidebarMenuItem>

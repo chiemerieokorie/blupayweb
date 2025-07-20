@@ -2,268 +2,182 @@
 
 import * as React from "react"
 import {
-  Blocks,
-  Calendar,
-  Command,
-  Home,
-  Inbox,
-  MessageCircleQuestion,
-  Search,
-  Settings2,
-  Sparkles,
-  Trash2,
-  CheckCircle,
-} from "lucide-react"
+  IconCamera,
+  IconChartBar,
+  IconDashboard,
+  IconDatabase,
+  IconFileAi,
+  IconFileDescription,
+  IconFileWord,
+  IconFolder,
+  IconHelp,
+  IconInnerShadowTop,
+  IconListDetails,
+  IconReport,
+  IconSearch,
+  IconSettings,
+  IconUsers,
+} from "@tabler/icons-react"
 
-import { NavFavorites } from "@/components/nav-favorites"
+import { NavDocuments } from "@/components/nav-documents"
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
-import { NavWorkspaces } from "@/components/nav-workspaces"
-import { TeamSwitcher } from "@/components/team-switcher"
+import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarHeader,
-  SidebarRail,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-// This is sample data.
 const data = {
-  team: {
-    name: "Blupay",
-    logo: Command,
+  user: {
+    name: "shadcn",
+    email: "m@example.com",
+    avatar: "/avatars/shadcn.jpg",
   },
   navMain: [
     {
-      title: "Search",
+      title: "Dashboard",
       url: "#",
-      icon: Search,
+      icon: IconDashboard,
     },
     {
-      title: "Ask AI",
+      title: "Lifecycle",
       url: "#",
-      icon: Sparkles,
+      icon: IconListDetails,
     },
     {
-      title: "Home",
+      title: "Analytics",
       url: "#",
-      icon: Home,
+      icon: IconChartBar,
+    },
+    {
+      title: "Projects",
+      url: "#",
+      icon: IconFolder,
+    },
+    {
+      title: "Team",
+      url: "#",
+      icon: IconUsers,
+    },
+  ],
+  navClouds: [
+    {
+      title: "Capture",
+      icon: IconCamera,
       isActive: true,
-    },
-    {
-      title: "Inbox",
       url: "#",
-      icon: Inbox,
-      badge: "10",
+      items: [
+        {
+          title: "Active Proposals",
+          url: "#",
+        },
+        {
+          title: "Archived",
+          url: "#",
+        },
+      ],
     },
     {
-      title: "Issues",
-      url: "/issues",
-      icon: CheckCircle,
-      badge: "10",
+      title: "Proposal",
+      icon: IconFileDescription,
+      url: "#",
+      items: [
+        {
+          title: "Active Proposals",
+          url: "#",
+        },
+        {
+          title: "Archived",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Prompts",
+      icon: IconFileAi,
+      url: "#",
+      items: [
+        {
+          title: "Active Proposals",
+          url: "#",
+        },
+        {
+          title: "Archived",
+          url: "#",
+        },
+      ],
     },
   ],
   navSecondary: [
     {
-      title: "Calendar",
-      url: "#",
-      icon: Calendar,
-    },
-    {
       title: "Settings",
       url: "#",
-      icon: Settings2,
+      icon: IconSettings,
     },
     {
-      title: "Templates",
+      title: "Get Help",
       url: "#",
-      icon: Blocks,
+      icon: IconHelp,
     },
     {
-      title: "Trash",
+      title: "Search",
       url: "#",
-      icon: Trash2,
-    },
-    {
-      title: "Help",
-      url: "#",
-      icon: MessageCircleQuestion,
+      icon: IconSearch,
     },
   ],
-  favorites: [
+  documents: [
     {
-      name: "Project Management & Task Tracking",
+      name: "Data Library",
       url: "#",
-      emoji: "📊",
+      icon: IconDatabase,
     },
     {
-      name: "Family Recipe Collection & Meal Planning",
+      name: "Reports",
       url: "#",
-      emoji: "🍳",
+      icon: IconReport,
     },
     {
-      name: "Fitness Tracker & Workout Routines",
+      name: "Word Assistant",
       url: "#",
-      emoji: "💪",
-    },
-    {
-      name: "Book Notes & Reading List",
-      url: "#",
-      emoji: "📚",
-    },
-    {
-      name: "Sustainable Gardening Tips & Plant Care",
-      url: "#",
-      emoji: "🌱",
-    },
-    {
-      name: "Language Learning Progress & Resources",
-      url: "#",
-      emoji: "🗣️",
-    },
-    {
-      name: "Home Renovation Ideas & Budget Tracker",
-      url: "#",
-      emoji: "🏠",
-    },
-    {
-      name: "Personal Finance & Investment Portfolio",
-      url: "#",
-      emoji: "💰",
-    },
-    {
-      name: "Movie & TV Show Watchlist with Reviews",
-      url: "#",
-      emoji: "🎬",
-    },
-    {
-      name: "Daily Habit Tracker & Goal Setting",
-      url: "#",
-      emoji: "✅",
-    },
-  ],
-  workspaces: [
-    {
-      name: "Personal Life Management",
-      emoji: "🏠",
-      pages: [
-        {
-          name: "Daily Journal & Reflection",
-          url: "#",
-          emoji: "📔",
-        },
-        {
-          name: "Health & Wellness Tracker",
-          url: "#",
-          emoji: "🍏",
-        },
-        {
-          name: "Personal Growth & Learning Goals",
-          url: "#",
-          emoji: "🌟",
-        },
-      ],
-    },
-    {
-      name: "Professional Development",
-      emoji: "💼",
-      pages: [
-        {
-          name: "Career Objectives & Milestones",
-          url: "#",
-          emoji: "🎯",
-        },
-        {
-          name: "Skill Acquisition & Training Log",
-          url: "#",
-          emoji: "🧠",
-        },
-        {
-          name: "Networking Contacts & Events",
-          url: "#",
-          emoji: "🤝",
-        },
-      ],
-    },
-    {
-      name: "Creative Projects",
-      emoji: "🎨",
-      pages: [
-        {
-          name: "Writing Ideas & Story Outlines",
-          url: "#",
-          emoji: "✍️",
-        },
-        {
-          name: "Art & Design Portfolio",
-          url: "#",
-          emoji: "🖼️",
-        },
-        {
-          name: "Music Composition & Practice Log",
-          url: "#",
-          emoji: "🎵",
-        },
-      ],
-    },
-    {
-      name: "Home Management",
-      emoji: "🏡",
-      pages: [
-        {
-          name: "Household Budget & Expense Tracking",
-          url: "#",
-          emoji: "💰",
-        },
-        {
-          name: "Home Maintenance Schedule & Tasks",
-          url: "#",
-          emoji: "🔧",
-        },
-        {
-          name: "Family Calendar & Event Planning",
-          url: "#",
-          emoji: "📅",
-        },
-      ],
-    },
-    {
-      name: "Travel & Adventure",
-      emoji: "🧳",
-      pages: [
-        {
-          name: "Trip Planning & Itineraries",
-          url: "#",
-          emoji: "🗺️",
-        },
-        {
-          name: "Travel Bucket List & Inspiration",
-          url: "#",
-          emoji: "🌎",
-        },
-        {
-          name: "Travel Journal & Photo Gallery",
-          url: "#",
-          emoji: "📸",
-        },
-      ],
+      icon: IconFileWord,
     },
   ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar className="border-r-0" {...props}>
+    <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
-        <TeamSwitcher team={data.team} />
-        <NavMain items={data.navMain} />
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              className="data-[slot=sidebar-menu-button]:!p-1.5"
+            >
+              <a href="#">
+                <IconInnerShadowTop className="!size-5" />
+                <span className="text-base font-semibold">
+                  Blue Penguin
+                </span>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavFavorites favorites={data.favorites} />
-        <NavWorkspaces workspaces={data.workspaces} />
+        <NavMain items={data.navMain} />
+        <NavDocuments items={data.documents} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
-      <SidebarRail />
+      <SidebarFooter>
+        <NavUser user={data.user} />
+      </SidebarFooter>
     </Sidebar>
   )
 }
