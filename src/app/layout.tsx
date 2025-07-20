@@ -3,7 +3,7 @@ import type {Metadata} from "next"
 import {ThemeProvider} from "next-themes"
 import React from "react"
 import {siteConfig} from "@/app/siteConfig"
-import {AppSidebar} from "@/components/app-sidebar"
+import {AppSidebar} from "@/components/layout/app-sidebar"
 import {
     SidebarInset,
     SidebarProvider,

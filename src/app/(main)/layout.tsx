@@ -1,5 +1,5 @@
 import React from 'react';
-import {AppSidebar} from "@/components/app-sidebar";
+import {AppSidebar} from "@/components/layout/app-sidebar";
 import {SidebarInset, SidebarProvider} from "@/components/ui/sidebar";
 
 interface LayoutProps {
