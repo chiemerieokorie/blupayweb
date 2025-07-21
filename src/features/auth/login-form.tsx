@@ -1,22 +1,28 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useLogin } from './hooks';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(1, 'Password is required'),
-  partnerBank: z.string().optional(),
+  partnerBank: z.string().optional().transform(val => {
+    // Transform empty string or 'undefined' to actual undefined
+    if (!val || val === '' || val === 'undefined') {
+      return undefined;
+    }
+    return val;
+  }),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -30,28 +36,54 @@ const partnerBanks = [
 
 export function LoginForm() {
   const router = useRouter();
-  const { login, loading, error } = useLogin();
+  const searchParams = useSearchParams();
   const [showPartnerBank, setShowPartnerBank] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: '',
       password: '',
-      partnerBank: '',
+      partnerBank: undefined, // Use undefined instead of empty string
     },
   });
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await login({
+      setLoading(true);
+      setError(null);
+      
+      const callbackUrl = searchParams.get('callbackUrl') || '/';
+      
+      console.log('Form submission data:', {
+        email: data.email,
+        partnerBank: data.partnerBank,
+        partnerBankType: typeof data.partnerBank,
+        partnerBankValue: JSON.stringify(data.partnerBank)
+      });
+      
+      const result = await signIn('credentials', {
         email: data.email,
         password: data.password,
-        partnerBank: data.partnerBank || undefined,
+        partnerBank: data.partnerBank, // Already transformed by Zod
+        redirect: false,
       });
-      router.push('/');
+      
+      console.log('NextAuth signIn result:', result);
+      
+      if (result?.error) {
+        setError('Invalid credentials. Please try again.');
+      } else if (result?.ok) {
+        router.push(callbackUrl);
+        router.refresh();
+      }
     } catch (error) {
       console.error('Login failed:', error);
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 

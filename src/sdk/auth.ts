@@ -3,16 +3,20 @@ import { LoginRequest, LoginResponse, User, ApiResponse } from './types';
 
 export class AuthService {
   async login(credentials: LoginRequest): Promise<LoginResponse> {
+    console.log('AuthService.login - Making API call to /auth/login');
     // TODO: Implement required userType for login
     const response = await apiClient.post<LoginResponse>('/auth/login', {...credentials, userType: 'administrator'});
     apiClient.setAuth(response.token);
+    console.log('AuthService.login - Success');
     return response;
   }
 
   async loginWithPartnerBank(credentials: LoginRequest, partnerBank: string): Promise<LoginResponse> {
+    console.log(`AuthService.loginWithPartnerBank - Making API call to /auth/login/${partnerBank}`);
     // TODO: Implement required userType for partner banks login
     const response = await apiClient.post<LoginResponse>(`/auth/login/${partnerBank}`, {...credentials, userType: 'administrator'});
     apiClient.setAuth(response.token, partnerBank);
+    console.log('AuthService.loginWithPartnerBank - Success');
     return response;
   }
 

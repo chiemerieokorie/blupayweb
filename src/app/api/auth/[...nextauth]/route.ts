@@ -22,8 +22,12 @@ const handler = NextAuth({
 
         try {
           let loginResponse;
+
+          const hasValidPartnerBank = credentials.partnerBank && 
+                                    credentials.partnerBank !== 'undefined' && 
+                                    credentials.partnerBank.trim() !== '';
           
-          if (credentials.partnerBank) {
+          if (hasValidPartnerBank) {
             loginResponse = await authService.loginWithPartnerBank(
               {
                 email: credentials.email,
@@ -32,6 +36,7 @@ const handler = NextAuth({
               credentials.partnerBank
             );
           } else {
+            console.log('Using regular login (no partner bank)');
             loginResponse = await authService.login({
               email: credentials.email,
               password: credentials.password,
@@ -41,10 +46,10 @@ const handler = NextAuth({
           return {
             id: loginResponse.user.id,
             email: loginResponse.user.email,
-            name: `${loginResponse.user.firstName} ${loginResponse.user.lastName}`,
+            name: `${loginResponse.user.firstName || 'User'} ${loginResponse.user.lastName || ''}`.trim(),
             token: loginResponse.token,
             user: loginResponse.user,
-            partnerBank: credentials.partnerBank,
+            partnerBank: hasValidPartnerBank ? credentials.partnerBank : undefined,
           };
         } catch (error) {
           console.error('Authentication error:', error);
