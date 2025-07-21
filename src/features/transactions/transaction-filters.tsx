@@ -100,7 +100,7 @@ export function TransactionFilters() {
             <Select
               value={localFilters.status || ''}
               onValueChange={(value) =>
-                setLocalFilters({ ...localFilters, status: value })
+                setLocalFilters({ ...localFilters, status: value as any })
               }
             >
               <SelectTrigger>
@@ -122,7 +122,7 @@ export function TransactionFilters() {
             <Select
               value={localFilters.processor || ''}
               onValueChange={(value) =>
-                setLocalFilters({ ...localFilters, processor: value })
+                setLocalFilters({ ...localFilters, processor: value as any })
               }
             >
               <SelectTrigger>

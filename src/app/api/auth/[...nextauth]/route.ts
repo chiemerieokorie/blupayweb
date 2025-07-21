@@ -36,7 +36,6 @@ const handler = NextAuth({
               credentials.partnerBank
             );
           } else {
-            console.log('Using regular login (no partner bank)');
             loginResponse = await authService.login({
               email: credentials.email,
               password: credentials.password,
@@ -44,7 +43,7 @@ const handler = NextAuth({
           }
 
           return {
-            id: loginResponse.user.id,
+            id: (loginResponse.user as any).uuid || loginResponse.user.id,
             email: loginResponse.user.email,
             name: `${loginResponse.user.firstName || 'User'} ${loginResponse.user.lastName || ''}`.trim(),
             token: loginResponse.token,
@@ -52,7 +51,6 @@ const handler = NextAuth({
             partnerBank: hasValidPartnerBank ? credentials.partnerBank : undefined,
           };
         } catch (error) {
-          console.error('Authentication error:', error);
           return null;
         }
       },

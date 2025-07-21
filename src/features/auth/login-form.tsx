@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -36,17 +36,16 @@ const partnerBanks = [
 
 export function LoginForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [showPartnerBank, setShowPartnerBank] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const form = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(loginSchema) as any,
     defaultValues: {
       email: '',
       password: '',
-      partnerBank: undefined, // Use undefined instead of empty string
+      partnerBank: undefined,
     },
   });
 
@@ -55,23 +54,14 @@ export function LoginForm() {
       setLoading(true);
       setError(null);
       
-      const callbackUrl = searchParams.get('callbackUrl') || '/';
-      
-      console.log('Form submission data:', {
-        email: data.email,
-        partnerBank: data.partnerBank,
-        partnerBankType: typeof data.partnerBank,
-        partnerBankValue: JSON.stringify(data.partnerBank)
-      });
+      const callbackUrl = '/';
       
       const result = await signIn('credentials', {
         email: data.email,
         password: data.password,
-        partnerBank: data.partnerBank, // Already transformed by Zod
+        partnerBank: data.partnerBank,
         redirect: false,
       });
-      
-      console.log('NextAuth signIn result:', result);
       
       if (result?.error) {
         setError('Invalid credentials. Please try again.');
@@ -80,7 +70,6 @@ export function LoginForm() {
         router.refresh();
       }
     } catch (error) {
-      console.error('Login failed:', error);
       setError('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
