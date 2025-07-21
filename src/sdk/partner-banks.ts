@@ -1,111 +1,28 @@
 import { apiClient } from './client';
-import { PartnerBank, PaginatedResponse } from './types';
+import { PartnerBank, CreatePartnerBankDto, UpdatePartnerBankDto, ApiResponse } from './types';
 
-export interface CreatePartnerBankRequest {
-  name: string;
-  commissionRatio: number;
-  settlementBank: {
-    bankName: string;
-    accountNumber: string;
-    accountName: string;
-    sortCode?: string;
-  };
-  commissionBank: {
-    bankName: string;
-    accountNumber: string;
-    accountName: string;
-    sortCode?: string;
-  };
-  fileHeaders: string[];
-}
+export const partnerBankService = {
+  async getPartnerBanks(params?: Record<string, unknown>): Promise<ApiResponse<PartnerBank[]>> {
+    return apiClient.get('/partner-banks', params);
+  },
 
-export interface UpdatePartnerBankRequest {
-  name?: string;
-  commissionRatio?: number;
-  settlementBank?: {
-    bankName: string;
-    accountNumber: string;
-    accountName: string;
-    sortCode?: string;
-  };
-  commissionBank?: {
-    bankName: string;
-    accountNumber: string;
-    accountName: string;
-    sortCode?: string;
-  };
-  fileHeaders?: string[];
-}
+  async getPartnerBank(id: string): Promise<PartnerBank> {
+    return apiClient.get(`/partner-banks/${id}`);
+  },
 
-export interface PartnerBankFilters {
-  page?: number;
-  perPage?: number;
-  search?: string;
-}
+  async createPartnerBank(data: CreatePartnerBankDto): Promise<PartnerBank> {
+    return apiClient.post('/partner-banks', data);
+  },
 
-export class PartnerBanksService {
-  async createPartnerBank(data: CreatePartnerBankRequest): Promise<PartnerBank> {
-    const response = await apiClient.post<PartnerBank>('/partner-banks', data);
-    if (response.status && response.data) {
-      return response.data;
-    }
-    throw new Error(response.message || 'Failed to create partner bank');
-  }
+  async updatePartnerBank(id: string, data: UpdatePartnerBankDto): Promise<PartnerBank> {
+    return apiClient.put(`/partner-banks/${id}`, data);
+  },
 
-  async getPartnerBanks(filters: PartnerBankFilters = {}): Promise<PaginatedResponse<PartnerBank>> {
-    const response = await apiClient.get<PaginatedResponse<PartnerBank>>('/partner-banks', filters);
-    if (response.status && response.data) {
-      return response.data;
-    }
-    throw new Error(response.message || 'Failed to fetch partner banks');
-  }
+  async deletePartnerBank(id: string): Promise<void> {
+    return apiClient.delete(`/partner-banks/${id}`);
+  },
 
-  async getPartnerBank(partnerBankId: string): Promise<PartnerBank> {
-    const response = await apiClient.get<PartnerBank>(`/partner-banks/${partnerBankId}`);
-    if (response.status && response.data) {
-      return response.data;
-    }
-    throw new Error(response.message || 'Failed to fetch partner bank');
-  }
-
-  async updatePartnerBank(partnerBankId: string, data: UpdatePartnerBankRequest): Promise<PartnerBank> {
-    const response = await apiClient.patch<PartnerBank>(`/partner-banks/${partnerBankId}`, data);
-    if (response.status && response.data) {
-      return response.data;
-    }
-    throw new Error(response.message || 'Failed to update partner bank');
-  }
-
-  async deletePartnerBank(partnerBankId: string): Promise<void> {
-    const response = await apiClient.delete(`/partner-banks/${partnerBankId}`);
-    if (!response.status) {
-      throw new Error(response.message || 'Failed to delete partner bank');
-    }
-  }
-
-  async getPartnerBankMerchants(partnerBankId: string): Promise<any[]> {
-    const response = await apiClient.get<any[]>(`/partner-banks/${partnerBankId}/merchants`);
-    if (response.status && response.data) {
-      return response.data;
-    }
-    throw new Error(response.message || 'Failed to fetch partner bank merchants');
-  }
-
-  async getPartnerBankDevices(partnerBankId: string): Promise<any[]> {
-    const response = await apiClient.get<any[]>(`/partner-banks/${partnerBankId}/devices`);
-    if (response.status && response.data) {
-      return response.data;
-    }
-    throw new Error(response.message || 'Failed to fetch partner bank devices');
-  }
-
-  async getPartnerBankAnalytics(partnerBankId: string, filters: { startDate?: string; endDate?: string } = {}): Promise<any> {
-    const response = await apiClient.get<any>(`/partner-banks/${partnerBankId}/analytics`, filters);
-    if (response.status && response.data) {
-      return response.data;
-    }
-    throw new Error(response.message || 'Failed to fetch partner bank analytics');
-  }
-}
-
-export const partnerBanksService = new PartnerBanksService();
+  async getPartnerBankAnalytics(partnerBankId: string, filters: { startDate?: string; endDate?: string } = {}): Promise<Record<string, unknown>> {
+    return apiClient.get(`/partner-banks/${partnerBankId}/analytics`, filters);
+  },
+};

@@ -1,157 +1,94 @@
 import { apiClient } from './client';
-import { 
-  Merchant, 
-  SubMerchant, 
+import {
+  Merchant,
+  CreateMerchantDto,
+  UpdateMerchantDto,
+  ApiResponse,
+  SubMerchant,
   MerchantApiKeys,
-  PaginatedResponse,
-  ApiResponse 
 } from './types';
 
-export interface CreateMerchantRequest {
-  merchantName: string;
-  merchantCategoryCode: string;
-  notificationEmail: string;
-  country: string;
-  canProcessCardTransactions?: boolean;
-  canProcessMomoTransactions?: boolean;
-  settlementDetails: {
-    bankName: string;
-    accountNumber: string;
-    accountName: string;
-    sortCode?: string;
-  };
-  bankDetails: {
-    bankName: string;
-    accountNumber: string;
-    accountName: string;
-    sortCode?: string;
-  };
-}
-
-export interface UpdateMerchantRequest {
-  merchantName?: string;
-  merchantCategoryCode?: string;
-  notificationEmail?: string;
-  canProcessCardTransactions?: boolean;
-  canProcessMomoTransactions?: boolean;
-  webhookUrl?: string;
-}
-
-export interface CreateSubMerchantRequest {
-  name: string;
-  email: string;
-  phoneNumber: string;
-}
-
-export interface MerchantFilters {
-  page?: number;
-  perPage?: number;
-  search?: string;
-  partnerBankId?: string;
-  status?: string;
-}
-
 export class MerchantsService {
-  async createMerchant(data: CreateMerchantRequest): Promise<Merchant> {
-    const response = await apiClient.post<Merchant>('/merchants', data);
-    if (response.status && response.data) {
-      return response.data;
-    }
-    throw new Error(response.message || 'Failed to create merchant');
+  async getAllMerchants(filters?: Record<string, unknown>): Promise<ApiResponse<Merchant[]>> {
+    return apiClient.get('/merchants', filters);
   }
 
-  async getMerchants(filters: MerchantFilters = {}): Promise<PaginatedResponse<Merchant>> {
-    const response = await apiClient.get<PaginatedResponse<Merchant>>('/merchants', filters);
-    if (response.status && response.data) {
-      return response.data;
-    }
-    throw new Error(response.message || 'Failed to fetch merchants');
+  async getMerchant(id: string): Promise<Merchant> {
+    return apiClient.get(`/merchants/${id}`);
   }
 
-  async getMerchant(merchantId: string): Promise<Merchant> {
-    const response = await apiClient.get<Merchant>(`/merchants/${merchantId}`);
-    if (response.status && response.data) {
-      return response.data;
-    }
-    throw new Error(response.message || 'Failed to fetch merchant');
+  async createMerchant(data: CreateMerchantDto): Promise<Merchant> {
+    return apiClient.post('/merchants', data);
   }
 
-  async getMerchantBySlug(slug: string): Promise<Merchant> {
-    const response = await apiClient.get<Merchant>(`/merchants/web/${slug}`);
-    if (response.status && response.data) {
-      return response.data;
-    }
-    throw new Error(response.message || 'Failed to fetch merchant');
+  async updateMerchant(id: string, data: UpdateMerchantDto): Promise<Merchant> {
+    return apiClient.put(`/merchants/${id}`, data);
   }
 
-  async updateMerchant(merchantId: string, data: UpdateMerchantRequest): Promise<Merchant> {
-    const response = await apiClient.patch<Merchant>(`/merchants/${merchantId}`, data);
-    if (response.status && response.data) {
-      return response.data;
-    }
-    throw new Error(response.message || 'Failed to update merchant');
+  async deleteMerchant(id: string): Promise<void> {
+    return apiClient.delete(`/merchants/${id}`);
   }
 
-  async deleteMerchant(merchantId: string): Promise<void> {
-    const response = await apiClient.delete(`/merchants/${merchantId}`);
-    if (!response.status) {
-      throw new Error(response.message || 'Failed to delete merchant');
-    }
+  async getMerchantByCode(merchantCode: string): Promise<Merchant> {
+    return apiClient.get(`/merchants/code/${merchantCode}`);
   }
 
+  async addMerchantKey(merchantId: string): Promise<MerchantApiKeys> {
+    return apiClient.post(`/merchants/${merchantId}/api-keys`);
+  }
+
+  async getMerchantAnalytics(merchantId: string, filters: { startDate?: string; endDate?: string } = {}): Promise<Record<string, unknown>> {
+    return apiClient.get(`/merchants/${merchantId}/analytics`, filters);
+  }
+
+  async testWebhook(merchantId: string): Promise<Record<string, unknown>> {
+    return apiClient.post(`/merchants/${merchantId}/test-webhook`);
+  }
+
+  async getTransactions(merchantId: string, filters: Record<string, unknown> = {}): Promise<Record<string, unknown>> {
+    return apiClient.get(`/merchants/${merchantId}/transactions`, filters);
+  }
+
+  async enableMerchant(id: string): Promise<Merchant> {
+    return apiClient.patch(`/merchants/${id}/enable`);
+  }
+
+  async disableMerchant(id: string): Promise<Merchant> {
+    return apiClient.patch(`/merchants/${id}/disable`);
+  }
+
+  async deleteMerchantKey(merchantId: string, keyId: string): Promise<void> {
+    return apiClient.delete(`/merchants/${merchantId}/api-keys/${keyId}`);
+  }
+
+  // Sub-merchants
   async getSubMerchants(merchantId: string): Promise<SubMerchant[]> {
-    const response = await apiClient.get<SubMerchant[]>(`/merchants/${merchantId}/sub-merchants`);
-    if (response.status && response.data) {
-      return response.data;
-    }
-    throw new Error(response.message || 'Failed to fetch sub-merchants');
+    return apiClient.get(`/merchants/${merchantId}/sub-merchants`);
   }
 
-  async createSubMerchant(merchantId: string, data: CreateSubMerchantRequest): Promise<SubMerchant> {
-    const response = await apiClient.post<SubMerchant>(`/merchants/${merchantId}/sub-merchants`, data);
-    if (response.status && response.data) {
-      return response.data;
-    }
-    throw new Error(response.message || 'Failed to create sub-merchant');
+  async createSubMerchant(merchantId: string, data: Record<string, unknown>): Promise<SubMerchant> {
+    return apiClient.post(`/merchants/${merchantId}/sub-merchants`, data);
   }
 
-  async updateSubMerchant(merchantId: string, subMerchantId: string, data: Partial<CreateSubMerchantRequest>): Promise<SubMerchant> {
-    const response = await apiClient.patch<SubMerchant>(`/merchants/${merchantId}/sub-merchants/${subMerchantId}`, data);
-    if (response.status && response.data) {
-      return response.data;
-    }
-    throw new Error(response.message || 'Failed to update sub-merchant');
+  async updateSubMerchant(merchantId: string, subMerchantId: string, data: Record<string, unknown>): Promise<SubMerchant> {
+    return apiClient.put(`/merchants/${merchantId}/sub-merchants/${subMerchantId}`, data);
   }
 
   async deleteSubMerchant(merchantId: string, subMerchantId: string): Promise<void> {
-    const response = await apiClient.delete(`/merchants/${merchantId}/sub-merchants/${subMerchantId}`);
-    if (!response.status) {
-      throw new Error(response.message || 'Failed to delete sub-merchant');
-    }
+    return apiClient.delete(`/merchants/${merchantId}/sub-merchants/${subMerchantId}`);
   }
 
-  async issueApiKey(): Promise<MerchantApiKeys> {
-    const response = await apiClient.get<MerchantApiKeys>('/merchants/apikey/issue');
-    if (response.status && response.data) {
-      return response.data;
-    }
-    throw new Error(response.message || 'Failed to issue API key');
+  // API Keys
+  async getApiKeys(merchantId: string): Promise<MerchantApiKeys> {
+    return apiClient.get(`/merchants/${merchantId}/api-keys`);
   }
 
-  async reIssueApiKey(): Promise<MerchantApiKeys> {
-    const response = await apiClient.patch<MerchantApiKeys>('/merchants/apikey/re-issue');
-    if (response.status && response.data) {
-      return response.data;
-    }
-    throw new Error(response.message || 'Failed to re-issue API key');
+  async regenerateApiKeys(merchantId: string): Promise<MerchantApiKeys> {
+    return apiClient.post(`/merchants/${merchantId}/api-keys/regenerate`);
   }
 
-  async registerWebhook(webhookUrl: string): Promise<Merchant> {
-    const response = await apiClient.patch<Merchant>('/merchants/webhook/register', { webhookUrl });
-    if (response.status && response.data) {
-      return response.data;
-    }
-    throw new Error(response.message || 'Failed to register webhook');
+  async toggleApiKeyStatus(merchantId: string): Promise<Merchant> {
+    return apiClient.patch(`/merchants/${merchantId}/api-keys/toggle`);
   }
 }
 

@@ -5,12 +5,7 @@ export const transactionsAtom = atom<PaginatedResponse<Transaction> | null>(null
 
 export const transactionFiltersAtom = atom<TransactionFilters>({
   page: 1,
-  perPage: 10,
-  status: '',
-  processor: '',
-  startDate: '',
-  endDate: '',
-  search: '',
+  limit: 10,
 });
 
 export const transactionsLoadingAtom = atom(false);
@@ -51,7 +46,7 @@ export const fetchTransactionAtom = atom(
       set(transactionsErrorAtom, null);
       
       const { transactionsService } = await import('@/sdk/transactions');
-      const transaction = await transactionsService.getTransaction(transactionRef);
+      const transaction = await transactionsService.getTransactionById(transactionRef);
       set(selectedTransactionAtom, transaction);
       
       return transaction;
@@ -73,7 +68,7 @@ export const reQueryTransactionAtom = atom(
       set(transactionsErrorAtom, null);
       
       const { transactionsService } = await import('@/sdk/transactions');
-      const transaction = await transactionsService.reQueryTransaction(transactionRef);
+      const transaction = await transactionsService.getTransactionById(transactionRef);
       
       // Update the transaction in the list
       const currentTransactions = get(transactionsAtom);

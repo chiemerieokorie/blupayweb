@@ -13,14 +13,15 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Plus, Building2 } from 'lucide-react';
 import { useCreateMerchant } from './hooks';
+import { CreateMerchantDto } from '@/sdk/types';
 
 const createMerchantSchema = z.object({
   merchantName: z.string().min(2, 'Merchant name must be at least 2 characters'),
   merchantCategoryCode: z.string().min(1, 'Category code is required'),
   notificationEmail: z.string().email('Please enter a valid email address'),
   country: z.string().min(1, 'Country is required'),
-  canProcessCardTransactions: z.boolean().optional().default(true),
-  canProcessMomoTransactions: z.boolean().optional().default(true),
+  canProcessCardTransactions: z.boolean().optional(),
+  canProcessMomoTransactions: z.boolean().optional(),
   
   // Settlement Details
   settlementBankName: z.string().min(1, 'Settlement bank name is required'),
@@ -33,9 +34,13 @@ const createMerchantSchema = z.object({
   accountNumber: z.string().min(1, 'Account number is required'),
   accountName: z.string().min(1, 'Account name is required'),
   sortCode: z.string().optional(),
+  
+  // Optional fields
+  partnerBankId: z.string().optional(),
+  webhookUrl: z.string().optional(),
 });
 
-type CreateMerchantFormData = z.infer<typeof createMerchantSchema>;
+type CreateMerchantFormData = CreateMerchantDto;
 
 const countries = [
   { value: 'GH', label: 'Ghana' },
@@ -75,38 +80,19 @@ export function CreateMerchantForm({ onSuccess, onCancel }: CreateMerchantFormPr
       settlementBankName: '',
       settlementAccountNumber: '',
       settlementAccountName: '',
-      settlementSortCode: '',
+      settlementSortCode: undefined,
       bankName: '',
       accountNumber: '',
       accountName: '',
-      sortCode: '',
+      sortCode: undefined,
+      partnerBankId: undefined,
+      webhookUrl: undefined,
     },
   });
 
   const onSubmit = async (data: CreateMerchantFormData) => {
     try {
-      const merchantData = {
-        merchantName: data.merchantName,
-        merchantCategoryCode: data.merchantCategoryCode,
-        notificationEmail: data.notificationEmail,
-        country: data.country,
-        canProcessCardTransactions: data.canProcessCardTransactions,
-        canProcessMomoTransactions: data.canProcessMomoTransactions,
-        settlementDetails: {
-          bankName: data.settlementBankName,
-          accountNumber: data.settlementAccountNumber,
-          accountName: data.settlementAccountName,
-          sortCode: data.settlementSortCode || undefined,
-        },
-        bankDetails: {
-          bankName: data.bankName,
-          accountNumber: data.accountNumber,
-          accountName: data.accountName,
-          sortCode: data.sortCode || undefined,
-        },
-      };
-
-      await create(merchantData);
+      await create(data);
       onSuccess?.();
       form.reset();
     } catch (error) {

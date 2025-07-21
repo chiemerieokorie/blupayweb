@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
 import { ApiResponse } from './types';
+import { createApiError, validateApiResponse } from './error-utils';
 import {ENV_VARIABLES} from "@/lib/constants";
 
 export class ApiClient {
@@ -61,29 +62,89 @@ export class ApiClient {
     this.partnerBankId = null;
   }
 
-  async get<T>(url: string, params?: Record<string, unknown>): Promise<ApiResponse<T>> {
-    const response = await this.client.get<ApiResponse<T>>(url, { params });
-    return response.data;
+  async get<T>(url: string, params?: Record<string, unknown>): Promise<T> {
+    try {
+      const response = await this.client.get<ApiResponse<T>>(url, { params });
+      return validateApiResponse(
+        response.data,
+        { endpoint: url, method: 'GET' },
+        `Failed to fetch data from ${url}`
+      );
+    } catch (error) {
+      throw createApiError(
+        error,
+        { endpoint: url, method: 'GET' },
+        `Failed to fetch data from ${url}`
+      );
+    }
   }
 
-  async post<T>(url: string, data?: Record<string, unknown>): Promise<ApiResponse<T>> {
-    const response = await this.client.post<ApiResponse<T>>(url, data);
-    return response.data;
+  async post<T>(url: string, data?: unknown): Promise<T> {
+    try {
+      const response = await this.client.post<ApiResponse<T>>(url, data);
+      return validateApiResponse(
+        response.data,
+        { endpoint: url, method: 'POST' },
+        `Failed to post data to ${url}`
+      );
+    } catch (error) {
+      throw createApiError(
+        error,
+        { endpoint: url, method: 'POST' },
+        `Failed to post data to ${url}`
+      );
+    }
   }
 
-  async patch<T>(url: string, data?: Record<string, unknown>): Promise<ApiResponse<T>> {
-    const response = await this.client.patch<ApiResponse<T>>(url, data);
-    return response.data;
+  async patch<T>(url: string, data?: unknown): Promise<T> {
+    try {
+      const response = await this.client.patch<ApiResponse<T>>(url, data);
+      return validateApiResponse(
+        response.data,
+        { endpoint: url, method: 'PATCH' },
+        `Failed to update data at ${url}`
+      );
+    } catch (error) {
+      throw createApiError(
+        error,
+        { endpoint: url, method: 'PATCH' },
+        `Failed to update data at ${url}`
+      );
+    }
   }
 
-  async put<T>(url: string, data?: Record<string, unknown>): Promise<ApiResponse<T>> {
-    const response = await this.client.put<ApiResponse<T>>(url, data);
-    return response.data;
+  async put<T>(url: string, data?: unknown): Promise<T> {
+    try {
+      const response = await this.client.put<ApiResponse<T>>(url, data);
+      return validateApiResponse(
+        response.data,
+        { endpoint: url, method: 'PUT' },
+        `Failed to update data at ${url}`
+      );
+    } catch (error) {
+      throw createApiError(
+        error,
+        { endpoint: url, method: 'PUT' },
+        `Failed to update data at ${url}`
+      );
+    }
   }
 
-  async delete<T>(url: string): Promise<ApiResponse<T>> {
-    const response = await this.client.delete<ApiResponse<T>>(url);
-    return response.data;
+  async delete<T>(url: string): Promise<T> {
+    try {
+      const response = await this.client.delete<ApiResponse<T>>(url);
+      return validateApiResponse(
+        response.data,
+        { endpoint: url, method: 'DELETE' },
+        `Failed to delete data at ${url}`
+      );
+    } catch (error) {
+      throw createApiError(
+        error,
+        { endpoint: url, method: 'DELETE' },
+        `Failed to delete data at ${url}`
+      );
+    }
   }
 }
 

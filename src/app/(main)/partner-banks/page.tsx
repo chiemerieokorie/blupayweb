@@ -1,16 +1,16 @@
-import {BreadcrumbPage, BreadCrumbs, PageContainer, PageHeader} from "@/components/layout/page-container";
-import {BreadcrumbLink} from "@/components/ui/breadcrumb";
-import {ROUTES} from "@/lib/constants";
+import { Metadata } from 'next';
+import { PageContainer } from '@/components/layout/page-container';
+import PartnerBanksPage from '@/features/partner-banks';
 
-export default function PartnerBanksPage() {
+export const metadata: Metadata = {
+  title: 'Partner Banks - Blupay Africa',
+  description: 'Manage partner bank relationships and integrations',
+};
+
+export default function Page() {
   return (
     <PageContainer>
-      <PageHeader>
-        <BreadCrumbs>
-          <BreadcrumbLink href={ROUTES.DASHBOARD}>Dashboard</BreadcrumbLink>
-          <BreadcrumbPage>Partner Banks</BreadcrumbPage>
-        </BreadCrumbs>
-      </PageHeader>
+      <PartnerBanksPage />
     </PageContainer>
   );
 }

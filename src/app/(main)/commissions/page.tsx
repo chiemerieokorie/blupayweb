@@ -1,16 +1,16 @@
-import {BreadcrumbPage, BreadCrumbs, PageContainer, PageHeader} from "@/components/layout/page-container";
-import {BreadcrumbLink} from "@/components/ui/breadcrumb";
-import {ROUTES} from "@/lib/constants";
+import { Metadata } from 'next';
+import { PageContainer } from '@/components/layout/page-container';
+import CommissionsPage from '@/features/commissions';
 
-export default function CommissionsPage() {
+export const metadata: Metadata = {
+  title: 'Commissions - Blupay Africa',
+  description: 'Configure and manage commission structures for transactions',
+};
+
+export default function Page() {
   return (
     <PageContainer>
-      <PageHeader>
-        <BreadCrumbs>
-          <BreadcrumbLink href={ROUTES.DASHBOARD}>Dashboard</BreadcrumbLink>
-          <BreadcrumbPage>Commissions</BreadcrumbPage>
-        </BreadCrumbs>
-      </PageHeader>
+      <CommissionsPage />
     </PageContainer>
   );
 }

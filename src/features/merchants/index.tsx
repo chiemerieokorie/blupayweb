@@ -12,7 +12,7 @@ import { CreateMerchantForm } from './create-merchant-form';
 import { Merchant } from '@/sdk/types';
 
 export function MerchantsPage() {
-  const { merchants, loading, error, updateFilters, refetch } = useMerchantsPage();
+  const { merchants, loading, error, filters, updateFilters, refetch } = useMerchantsPage();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedMerchant, setSelectedMerchant] = useState<Merchant | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -125,7 +125,12 @@ export function MerchantsPage() {
       <MerchantsTable
         merchants={merchants?.data || []}
         loading={loading}
-        pagination={merchants?.meta}
+        pagination={merchants ? {
+          page: filters.page || 1,
+          perPage: filters.perPage || 10,
+          total: merchants.total || 0,
+          totalPages: Math.ceil((merchants.total || 0) / (filters.perPage || 10))
+        } : undefined}
         onPageChange={handlePageChange}
         onViewMerchant={handleViewMerchant}
         onEditMerchant={handleEditMerchant}

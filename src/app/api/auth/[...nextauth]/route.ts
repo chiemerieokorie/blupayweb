@@ -39,7 +39,7 @@ const handler = NextAuth({
           }
 
           return {
-            id: loginResponse.user.uuid,
+            id: loginResponse.user.id,
             email: loginResponse.user.email,
             name: `${loginResponse.user.firstName} ${loginResponse.user.lastName}`,
             token: loginResponse.token,

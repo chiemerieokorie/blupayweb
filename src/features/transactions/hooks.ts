@@ -48,12 +48,7 @@ export function useTransactionFilters() {
   const resetFilters = useCallback(async () => {
     const defaultFilters: TransactionFilters = {
       page: 1,
-      perPage: 10,
-      status: '',
-      processor: '',
-      startDate: '',
-      endDate: '',
-      search: '',
+      limit: 10,
     };
     setFilters(defaultFilters);
     await fetchTransactions();

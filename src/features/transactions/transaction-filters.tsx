@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Search, Filter, RotateCcw, Calendar } from 'lucide-react';
+import type { TransactionFilters } from '@/sdk/types';
 import { useTransactionFilters } from './hooks';
 
 const statusOptions = [
@@ -36,14 +37,9 @@ export function TransactionFilters() {
   };
 
   const handleResetFilters = async () => {
-    const defaultFilters = {
+    const defaultFilters: TransactionFilters = {
       page: 1,
-      perPage: 10,
-      status: '',
-      processor: '',
-      startDate: '',
-      endDate: '',
-      search: '',
+      limit: 10,
     };
     setLocalFilters(defaultFilters);
     await resetFilters();
@@ -88,7 +84,7 @@ export function TransactionFilters() {
             <Input
               id="search"
               placeholder="Search by reference, customer name, or phone..."
-              value={localFilters.search || ''}
+              value={(localFilters as any).search || ''}
               onChange={(e) =>
                 setLocalFilters({ ...localFilters, search: e.target.value })
               }

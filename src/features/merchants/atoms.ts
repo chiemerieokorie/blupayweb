@@ -1,8 +1,8 @@
 import { atom } from 'jotai';
-import { Merchant, SubMerchant, MerchantApiKeys, PaginatedResponse } from '@/sdk/types';
-import { MerchantFilters } from '@/sdk/merchants';
+import { Merchant, SubMerchant, MerchantApiKeys, ApiResponse } from '@/sdk/types';
+import { MerchantFilters } from '@/sdk/types';
 
-export const merchantsAtom = atom<PaginatedResponse<Merchant> | null>(null);
+export const merchantsAtom = atom<ApiResponse<Merchant[]> | null>(null);
 
 export const subMerchantsAtom = atom<SubMerchant[]>([]);
 
@@ -30,7 +30,7 @@ export const fetchMerchantsAtom = atom(
       const { merchantsService } = await import('@/sdk/merchants');
       const filters = get(merchantFiltersAtom);
       
-      const response = await merchantsService.getMerchants(filters);
+      const response = await merchantsService.getAllMerchants(filters);
       set(merchantsAtom, response);
       
       return response;
@@ -194,7 +194,10 @@ export const fetchApiKeysAtom = atom(
   async (get, set) => {
     try {
       const { merchantsService } = await import('@/sdk/merchants');
-      const apiKeys = await merchantsService.issueApiKey();
+      const merchantId = get(selectedMerchantAtom)?.uuid;
+      if (!merchantId) throw new Error('No merchant selected');
+      
+      const apiKeys = await merchantsService.getApiKeys(merchantId);
       set(merchantApiKeysAtom, apiKeys);
       
       return apiKeys;
@@ -214,7 +217,10 @@ export const reIssueApiKeysAtom = atom(
       set(merchantsErrorAtom, null);
       
       const { merchantsService } = await import('@/sdk/merchants');
-      const apiKeys = await merchantsService.reIssueApiKey();
+      const merchantId = get(selectedMerchantAtom)?.uuid;
+      if (!merchantId) throw new Error('No merchant selected');
+      
+      const apiKeys = await merchantsService.regenerateApiKeys(merchantId);
       set(merchantApiKeysAtom, apiKeys);
       
       return apiKeys;
@@ -236,7 +242,10 @@ export const registerWebhookAtom = atom(
       set(merchantsErrorAtom, null);
       
       const { merchantsService } = await import('@/sdk/merchants');
-      const merchant = await merchantsService.registerWebhook(webhookUrl);
+      const selectedMerchant = get(selectedMerchantAtom);
+      if (!selectedMerchant) throw new Error('No merchant selected');
+      
+      const merchant = await merchantsService.updateMerchant(selectedMerchant.uuid, { webhookUrl });
       
       // Update selected merchant
       set(selectedMerchantAtom, merchant);

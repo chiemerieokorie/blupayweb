@@ -1,16 +1,16 @@
-import {BreadcrumbPage, BreadCrumbs, PageContainer, PageHeader} from "@/components/layout/page-container";
-import {BreadcrumbLink} from "@/components/ui/breadcrumb";
-import {ROUTES} from "@/lib/constants";
+import { Metadata } from 'next';
+import { PageContainer } from '@/components/layout/page-container';
+import DevicesPage from '@/features/devices';
 
-export default function DevicesPage() {
+export const metadata: Metadata = {
+  title: 'Devices & Terminals - Blupay Africa',
+  description: 'Manage POS terminals, ATMs, and mobile devices',
+};
+
+export default function Page() {
   return (
     <PageContainer>
-      <PageHeader>
-        <BreadCrumbs>
-          <BreadcrumbLink href={ROUTES.DASHBOARD}>Dashboard</BreadcrumbLink>
-          <BreadcrumbPage>Terminals</BreadcrumbPage>
-        </BreadCrumbs>
-      </PageHeader>
+      <DevicesPage />
     </PageContainer>
   );
 }
