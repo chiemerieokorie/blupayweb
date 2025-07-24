@@ -103,6 +103,7 @@ import {
   fetchPaginatedTransactionsAtom 
 } from "./atoms"
 import { useAuth } from '@/features/auth/hooks'
+import { getProcessorConfig, getTransactionStatusConfig } from "./constants"
 
 // Create a sortable header component for column reordering
 function SortableHeader({ id, children }: { id: string; children: React.ReactNode }) {
@@ -127,34 +128,12 @@ function SortableHeader({ id, children }: { id: string; children: React.ReactNod
 }
 
 const getStatusBadge = (status: string) => {
-  const normalizedStatus = status?.toUpperCase() as TransactionStatus;
-  
-  const variants = {
-    SUCCESSFUL: 'default',
-    PENDING: 'secondary',
-    FAILED: 'destructive',
-  } as const;
-
-  const icons = {
-    SUCCESSFUL: <IconCircleCheckFilled className="w-3 h-3" />,
-    PENDING: <IconClock className="w-3 h-3" />,
-    FAILED: <IconAlertCircle className="w-3 h-3" />,
-  } as const;
-
-  const labels = {
-    SUCCESSFUL: 'SUCCESS',
-    PENDING: 'PENDING',
-    FAILED: 'FAILED',
-  } as const;
-
-  const variant = variants[normalizedStatus] || 'secondary';
-  const icon = icons[normalizedStatus] || <IconClock className="w-3 h-3" />;
-  const label = labels[normalizedStatus] || status?.toUpperCase() || 'UNKNOWN';
+  const statusConfig = getTransactionStatusConfig(status);
 
   return (
-    <Badge variant={variant} className="gap-1">
-      {icon}
-      {label}
+    <Badge variant={statusConfig.variant} className="gap-1">
+      {statusConfig.icon}
+      {statusConfig.title.toUpperCase()}
     </Badge>
   );
 };
@@ -182,16 +161,8 @@ const formatAmount = (amount: number) => {
 };
 
 const getProcessorLogo = (processor: string) => {
-  const processorLogos: Record<string, string> = {
-    'MTN': '/logos/mtn.png',
-    'VODAFONE': '/logos/vodafone.png',
-    'AIRTELTIGO': '/logos/airteltigo.png',
-    'ZEEPAY': '/logos/zeepay.png',
-    'VISA': '/logos/visa.png',
-    'MASTERCARD': '/logos/mastercard.png',
-  };
-  
-  return processorLogos[processor?.toUpperCase()] || '/logos/default.png';
+  const processorConfig = getProcessorConfig(processor);
+  return processorConfig.logoPath || '/logos/default.png';
 };
 
 const createColumns = (columnOrder: string[]): ColumnDef<Transaction>[] => {
@@ -312,22 +283,31 @@ const createColumns = (columnOrder: string[]): ColumnDef<Transaction>[] => {
           </div>
         </SortableHeader>
       ),
-      cell: ({ row }) => (
-        <div className="flex items-center space-x-2">
-          <img
-            src={getProcessorLogo(row.original.processor)}
-            alt={row.original.processor || 'Unknown'}
-            className="h-6 w-6 object-contain"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-              e.currentTarget.nextElementSibling?.classList.remove('hidden');
-            }}
-          />
-          <span className="text-xs text-muted-foreground hidden">
-            {row.original.processor || 'Unknown'}
-          </span>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const processorConfig = getProcessorConfig(row.original.processor);
+        return (
+          <div className="flex items-center space-x-2">
+            {processorConfig.logoPath ? (
+              <img
+                src={processorConfig.logoPath}
+                alt={processorConfig.title}
+                className="h-6 w-6 object-contain"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+            ) : (
+              <div className="h-6 w-6 flex items-center justify-center">
+                {processorConfig.icon}
+              </div>
+            )}
+            <span className="text-xs text-muted-foreground hidden">
+              {processorConfig.title}
+            </span>
+          </div>
+        );
+      },
     },
     reference: {
       id: "reference",

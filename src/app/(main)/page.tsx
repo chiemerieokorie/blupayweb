@@ -22,12 +22,11 @@ export default function Home() {
             <AnalyticsCards/>
             <TransactionChart/>
 
-            {/*<div className="grid grid-cols-1 md:grid-cols-3 gap-6">*/}
-            {/*    <TransactionMoneyInOutChart/>*/}
-            {/*    <TransactionStatusPieChart/>*/}
-            {/*    <TransactionProcessorBarChart/>*/}
-            {/*</div>*/}
-
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <TransactionMoneyInOutChart/>
+                <TransactionStatusPieChart/>
+                <TransactionProcessorBarChart/>
+            </div>
 
             <TransactionsTable/>
         </PageContainer>
