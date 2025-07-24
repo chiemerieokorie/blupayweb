@@ -1,78 +1,85 @@
-import React from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
-import {Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
-import {Badge} from "@/components/ui/badge";
-import {IconTrendingUp, IconTrendingDown, IconTrendingUp2} from "@tabler/icons-react";
-import clsx from "clsx";
-
-
+"use client"
+import clsx from "clsx"
+import Link from "next/link"
+import type { ComponentType } from "react"
+import { Button } from "@/components/ui/button"
+import {
+    Card,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card"
+import {Skeleton} from "@/components/ui/skeleton"
 
 type Trend = "up" | "down" | "neutral"
 
-export interface SectionCardItem {
-    label: string
+export interface AnalyticsCardItem {
+    id: string
+    title: string
     value: string
-    delta?: number
-    trend?: Trend
-    footerPrimary: string
-    footerSecondary: string
+    count: number | null
+    description: string
+    Icon: ComponentType<{ className?: string }>
+    trend: Trend
+    color: string         // e.g. "text-green-600"
+    bgColor: string       // e.g. "bg-green-50"
+    cta?: { ctaRoute: string; ctaTitle: string }
 }
 
 interface SectionCardsProps {
-    items: SectionCardItem[]
+    items: AnalyticsCardItem[]
     className?: string
 }
 
-const trendIconMap: Record<Trend, typeof IconTrendingUp> = {
-    up: IconTrendingUp,
-    down: IconTrendingDown,
-    neutral: IconTrendingUp2,
-}
 
-export function Cards({ items, className }: SectionCardsProps) {
+export function SectionCards({ items, className }: SectionCardsProps) {
     return (
         <div
             className={clsx(
-                "[grid-template-columns:repeat(auto-fit,minmax(16rem,1fr))]",
-                "grid gap-4",
-                "*:data-[slot=card]:bg-gradient-to-t",
-                "*:data-[slot=card]:from-primary/5",
-                "*:data-[slot=card]:to-card",
-                "*:data-[slot=card]:shadow-xs",
+                "[grid-template-columns:repeat(auto-fit,minmax(16rem,1fr))] grid gap-4",
+                "*:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs",
                 "dark:*:data-[slot=card]:bg-card",
                 className,
             )}
         >
             {items.map(
                 (
-                    { label, value, delta = 0, trend = "neutral", footerPrimary, footerSecondary },
+                    {
+                        id,
+                        title,
+                        value,
+                        description,
+                        cta,
+                    },
                     idx,
                 ) => {
-                    const Icon = trendIconMap[trend]
-                    const deltaFormatted =
-                        delta === 0
-                            ? "0%"
-                            : `${trend === "down" ? "-" : "+"}${Math.abs(delta).toFixed(1)}%`
 
                     return (
-                        <Card key={idx} className="@container/card">
+                        <Card key={id ?? idx} className="@container/card" data-slot="card">
                             <CardHeader>
-                                <CardDescription>{label}</CardDescription>
-                                <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+                                <CardDescription>{title}</CardDescription>
+                                <CardTitle className="text-2xl font-medium tabular-nums @[250px]/card:text-3xl">
                                     {value}
                                 </CardTitle>
-                                <CardAction>
-                                    <Badge variant="outline">
-                                        <Icon className="mr-1.5" />
-                                        {deltaFormatted}
-                                    </Badge>
-                                </CardAction>
                             </CardHeader>
+
                             <CardFooter className="flex-col items-start gap-1.5 text-sm">
-                                <div className="line-clamp-1 flex gap-2 font-medium">
-                                    {footerPrimary} <Icon className="size-4" />
+                                <div className="line-clamp-1 flex gap-2 ">
+                                    {description}
                                 </div>
-                                <div className="text-muted-foreground">{footerSecondary}</div>
+
+                                {/*{count !== null && (*/}
+                                {/*    <div className="text-muted-foreground">*/}
+                                {/*        {count.toLocaleString()} total*/}
+                                {/*    </div>*/}
+                                {/*)}*/}
+
+                                {cta && (
+                                    <Button size="sm" asChild>
+                                        <Link href={cta.ctaRoute}>{cta.ctaTitle}</Link>
+                                    </Button>
+                                )}
                             </CardFooter>
                         </Card>
                     )
@@ -84,9 +91,10 @@ export function Cards({ items, className }: SectionCardsProps) {
 
 
 
+
 export const AnalyticsCardsLoading = () => {
     return (
-        <div className="flex gap-4">
+        <div className="flex gap-4 w-full">
             {
                 Array.from({ length: 4 }).map(() => (<Skeleton key={Math.random()} className="h-24 w-full rounded-md" />
                 ))}
@@ -97,7 +105,7 @@ export const AnalyticsCardsLoading = () => {
 
 export const AnalyticsCardsError = () => {
     return (
-        <div className="flex gap-4">
+        <div className="flex gap-4 w-full">
             <p className="text-destructive">
                 We encountered an error while loading the analytics cards. Please try again later.
             </p>
