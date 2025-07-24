@@ -95,14 +95,12 @@ export function Dashboard() {
 
         {/* Transaction Chart */}
         <div className="md:col-span-2">
-          {analytics && (
-            <TransactionChart analytics={analytics} loading={loading} />
-          )}
+          <TransactionChart />
         </div>
       </div>
 
       {/* Recent Transactions */}
-      <RecentTransactions transactions={transactions} loading={loading} />
+      <RecentTransactions />
 
       {/* Role-specific sections */}
       {user?.role === 'ADMIN' && (
