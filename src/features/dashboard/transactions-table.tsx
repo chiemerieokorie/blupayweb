@@ -4,20 +4,17 @@ import * as React from "react"
 import {
   closestCenter,
   DndContext,
-  KeyboardSensor,
   MouseSensor,
-  TouchSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
-  type UniqueIdentifier,
 } from "@dnd-kit/core"
-import { restrictToVerticalAxis } from "@dnd-kit/modifiers"
+import { restrictToHorizontalAxis } from "@dnd-kit/modifiers"
 import {
   arrayMove,
   SortableContext,
   useSortable,
-  verticalListSortingStrategy,
+  horizontalListSortingStrategy,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import {
@@ -28,7 +25,6 @@ import {
   IconChevronsRight,
   IconCircleCheckFilled,
   IconDotsVertical,
-  IconGripVertical,
   IconLayoutColumns,
   IconLoader,
   IconUser,
@@ -98,29 +94,41 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Transaction, TransactionStatus, TransactionType } from "@/sdk/types"
-import { useDashboard } from "./hooks"
+import { useAtom, useAtomValue, useSetAtom } from 'jotai'
+import { 
+  paginatedTransactionsAtom, 
+  transactionsPaginationAtom, 
+  transactionsLoadingAtom, 
+  transactionsErrorAtom,
+  fetchPaginatedTransactionsAtom 
+} from "./atoms"
+import { useAuth } from '@/features/auth/hooks'
 
-// Create a separate component for the drag handle
-function DragHandle({ id }: { id: string }) {
-  const { attributes, listeners } = useSortable({
+// Create a sortable header component for column reordering
+function SortableHeader({ id, children }: { id: string; children: React.ReactNode }) {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id,
   })
 
   return (
-    <Button
+    <div
+      ref={setNodeRef}
       {...attributes}
       {...listeners}
-      variant="ghost"
-      size="icon"
-      className="text-muted-foreground size-7 hover:bg-transparent"
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }}
+      className="cursor-grab active:cursor-grabbing"
     >
-      <IconGripVertical className="text-muted-foreground size-3" />
-      <span className="sr-only">Drag to reorder</span>
-    </Button>
+      {children}
+    </div>
   )
 }
 
-const getStatusBadge = (status: TransactionStatus) => {
+const getStatusBadge = (status: string) => {
+  const normalizedStatus = status?.toUpperCase() as TransactionStatus;
+  
   const variants = {
     SUCCESSFUL: 'default',
     PENDING: 'secondary',
@@ -139,20 +147,31 @@ const getStatusBadge = (status: TransactionStatus) => {
     FAILED: 'FAILED',
   } as const;
 
+  const variant = variants[normalizedStatus] || 'secondary';
+  const icon = icons[normalizedStatus] || <IconClock className="w-3 h-3" />;
+  const label = labels[normalizedStatus] || status?.toUpperCase() || 'UNKNOWN';
+
   return (
-    <Badge variant={variants[status]} className="gap-1">
-      {icons[status]}
-      {labels[status]}
+    <Badge variant={variant} className="gap-1">
+      {icon}
+      {label}
     </Badge>
   );
 };
 
-const getTransactionIcon = (type: TransactionType) => {
-  return type === 'MONEY_IN' ? (
+const getTransactionIcon = (transaction: any) => {
+  // Since API doesn't provide type, assume positive amounts are MONEY_IN
+  const isMoneyIn = (transaction.amount && parseFloat(transaction.amount) > 0) || true;
+  return isMoneyIn ? (
     <IconDownload className="h-4 w-4 text-green-500" />
   ) : (
     <IconUpload className="h-4 w-4 text-red-500" />
   );
+};
+
+const getTransactionType = (transaction: any): string => {
+  // Since API doesn't provide type, assume MONEY_IN for positive amounts
+  return (transaction.amount && parseFloat(transaction.amount) > 0) ? 'MONEY_IN' : 'MONEY_OUT';
 };
 
 const formatAmount = (amount: number) => {
@@ -175,228 +194,292 @@ const getProcessorLogo = (processor: string) => {
   return processorLogos[processor?.toUpperCase()] || '/logos/default.png';
 };
 
-const columns: ColumnDef<Transaction>[] = [
-  {
-    id: "drag",
-    header: () => null,
-    cell: ({ row }) => <DragHandle id={row.original.uuid} />,
-  },
-  {
-    id: "select",
-    header: ({ table }) => (
-      <div className="flex items-center justify-center">
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div className="flex items-center justify-center">
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      </div>
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "customer.name",
-    header: () => (
-      <div className="flex items-center gap-2">
-        <IconUser className="w-4 h-4" />
-        Customer Name
-      </div>
-    ),
-    cell: ({ row }) => {
-      const transaction = row.original;
-      return (
-        <div className="flex items-center space-x-3">
-          <Avatar className="h-8 w-8">
-            <AvatarFallback className="bg-blue-100 text-blue-600">
-              {getTransactionIcon(transaction.type)}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="font-medium text-sm">
-              {transaction.customer?.name || 'Unknown Customer'}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {(transaction as any).merchant?.merchantName || 'Direct'}
-            </p>
+const createColumns = (columnOrder: string[]): ColumnDef<Transaction>[] => {
+  const allColumns: Record<string, ColumnDef<Transaction>> = {
+    select: {
+      id: "select",
+      header: ({ table }) => (
+        <div className="flex items-center justify-center">
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="flex items-center justify-center">
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        </div>
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    customer: {
+      id: "customer",
+      accessorKey: "customer.name",
+      header: ({ column }) => (
+        <SortableHeader id="customer">
+          <div className="flex items-center gap-2">
+            <IconUser className="w-4 h-4" />
+            Customer Name
+          </div>
+        </SortableHeader>
+      ),
+      cell: ({ row }) => {
+        const transaction = row.original;
+        return (
+          <div className="flex items-center space-x-3">
+            <Avatar className="h-8 w-8">
+              <AvatarFallback className="bg-blue-100 text-blue-600">
+                {getTransactionIcon(transaction)}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-medium text-sm">
+                {transaction.customer?.name || 'Unknown Customer'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {transaction.customer?.phoneNumber || 'N/A'}
+              </p>
+            </div>
+          </div>
+        );
+      },
+      enableHiding: false,
+    },
+    date: {
+      id: "date",
+      accessorKey: "createdAt",
+      header: ({ column }) => (
+        <SortableHeader id="date">
+          <div className="flex items-center gap-2">
+            <IconCalendar className="w-4 h-4" />
+            Date
+          </div>
+        </SortableHeader>
+      ),
+      cell: ({ row }) => (
+        <div>
+          <div className="text-sm">
+            {row.original.createdAt ? new Date(row.original.createdAt).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            }) : 'N/A'}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {row.original.createdAt ? new Date(row.original.createdAt).toLocaleTimeString('en-US', {
+              hour: '2-digit',
+              minute: '2-digit',
+            }) : 'N/A'}
           </div>
         </div>
-      );
+      ),
     },
-    enableHiding: false,
-  },
-  {
-    accessorKey: "createdAt",
-    header: () => (
-      <div className="flex items-center gap-2">
-        <IconCalendar className="w-4 h-4" />
-        Date
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div>
-        <div className="text-sm">
-          {new Date(row.original.createdAt).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-          })}
+    tid: {
+      id: "tid",
+      accessorKey: "merchant.terminal.deviceId",
+      header: ({ column }) => (
+        <SortableHeader id="tid">
+          <div className="flex items-center gap-2">
+            <IconHash className="w-4 h-4" />
+            TID
+          </div>
+        </SortableHeader>
+      ),
+      cell: ({ row }) => (
+        <div className="text-sm font-mono">
+          {(row.original as any).merchant?.terminal?.deviceId || 'N/A'}
         </div>
-        <div className="text-xs text-muted-foreground">
-          {new Date(row.original.createdAt).toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
+      ),
+    },
+    processor: {
+      id: "processor",
+      accessorKey: "processor",
+      header: ({ column }) => (
+        <SortableHeader id="processor">
+          <div className="flex items-center gap-2">
+            <IconCreditCard className="w-4 h-4" />
+            Scheme
+          </div>
+        </SortableHeader>
+      ),
+      cell: ({ row }) => (
+        <div className="flex items-center space-x-2">
+          <img
+            src={getProcessorLogo(row.original.processor)}
+            alt={row.original.processor || 'Unknown'}
+            className="h-6 w-6 object-contain"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+              e.currentTarget.nextElementSibling?.classList.remove('hidden');
+            }}
+          />
+          <span className="text-xs text-muted-foreground hidden">
+            {row.original.processor || 'Unknown'}
+          </span>
         </div>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "merchant.terminal.deviceId",
-    header: () => (
-      <div className="flex items-center gap-2">
-        <IconHash className="w-4 h-4" />
-        TID
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div className="text-sm font-mono">
-        {(row.original as any).merchant?.terminal?.deviceId || 'N/A'}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "processor",
-    header: () => (
-      <div className="flex items-center gap-2">
-        <IconCreditCard className="w-4 h-4" />
-        Scheme
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div className="flex items-center space-x-2">
-        <img
-          src={getProcessorLogo(row.original.processor)}
-          alt={row.original.processor}
-          className="h-6 w-6 object-contain"
-          onError={(e) => {
-            e.currentTarget.style.display = 'none';
-            e.currentTarget.nextElementSibling?.classList.remove('hidden');
-          }}
-        />
-        <span className="text-xs text-muted-foreground hidden">
-          {row.original.processor}
-        </span>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "transactionRef",
-    header: () => (
-      <div className="flex items-center gap-2">
-        <IconReceipt className="w-4 h-4" />
-        Reference
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div className="text-sm font-mono">
-        {row.original.transactionRef}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "amount",
-    header: () => (
-      <div className="flex items-center gap-2">
-        <IconCurrencyDollar className="w-4 h-4" />
-        Amount
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div>
-        <div className={`text-sm font-medium ${
-          row.original.type === 'MONEY_IN' ? 'text-green-600' : 'text-red-600'
-        }`}>
-          {row.original.type === 'MONEY_IN' ? '+' : '-'}
-          {formatAmount(row.original.amount)}
+      ),
+    },
+    reference: {
+      id: "reference",
+      accessorKey: "transactionRef",
+      header: ({ column }) => (
+        <SortableHeader id="reference">
+          <div className="flex items-center gap-2">
+            <IconReceipt className="w-4 h-4" />
+            Reference
+          </div>
+        </SortableHeader>
+      ),
+      cell: ({ row }) => (
+        <div className="text-sm font-mono">
+          {row.original.transactionRef || 'N/A'}
         </div>
-        <div className="text-xs text-muted-foreground">
-          {row.original.source}
+      ),
+    },
+    amount: {
+      id: "amount",
+      accessorKey: "amount",
+      header: ({ column }) => (
+        <SortableHeader id="amount">
+          <div className="flex items-center gap-2">
+            <IconCurrencyDollar className="w-4 h-4" />
+            Amount
+          </div>
+        </SortableHeader>
+      ),
+      cell: ({ row }) => {
+        const transaction = row.original;
+        const transactionType = getTransactionType(transaction);
+        const amount = parseFloat(transaction.amount) || 0;
+        
+        return (
+          <div>
+            <div className={`text-sm font-medium ${
+              transactionType === 'MONEY_IN' ? 'text-green-600' : 'text-red-600'
+            }`}>
+              {transactionType === 'MONEY_IN' ? '+' : '-'}
+              {formatAmount(Math.abs(amount))}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {transaction.processor?.toUpperCase() || 'N/A'} • GHS
+            </div>
+          </div>
+        );
+      },
+    },
+    status: {
+      id: "status",
+      accessorKey: "status",
+      header: ({ column }) => (
+        <SortableHeader id="status">
+          <div className="flex items-center gap-2">
+            <IconCircleFilled className="w-4 h-4" />
+            Status
+          </div>
+        </SortableHeader>
+      ),
+      cell: ({ row }) => getStatusBadge(row.original.status),
+    },
+    type: {
+      id: "type",
+      accessorKey: "type",
+      header: ({ column }) => (
+        <SortableHeader id="type">
+          <div className="flex items-center gap-2">
+            <IconRotateClockwise className="w-4 h-4" />
+            Type
+          </div>
+        </SortableHeader>
+      ),
+      cell: ({ row }) => {
+        const transactionType = getTransactionType(row.original);
+        return (
+          <Badge variant={transactionType === 'MONEY_IN' ? 'default' : 'secondary'}>
+            {transactionType.replace('_', ' ')}
+          </Badge>
+        );
+      },
+    },
+    surcharge: {
+      id: "surcharge",
+      accessorKey: "surchargeOnCustomer",
+      header: ({ column }) => (
+        <SortableHeader id="surcharge">
+          <div className="flex items-center gap-2">
+            <IconCurrencyDollar className="w-4 h-4" />
+            Surcharge
+          </div>
+        </SortableHeader>
+      ),
+      cell: ({ row }) => {
+        const customerSurcharge = parseFloat(row.original.surchargeOnCustomer) || 0;
+        const merchantSurcharge = parseFloat(row.original.surchargeOnMerchant) || 0;
+        
+        return (
+          <div className="text-sm">
+            <div>Customer: {formatAmount(customerSurcharge)}</div>
+            <div className="text-xs text-muted-foreground">
+              Merchant: {formatAmount(merchantSurcharge)}
+            </div>
+          </div>
+        );
+      },
+    },
+    description: {
+      id: "description",
+      accessorKey: "description",
+      header: ({ column }) => (
+        <SortableHeader id="description">
+          <div className="flex items-center gap-2">
+            <IconReceipt className="w-4 h-4" />
+            Description
+          </div>
+        </SortableHeader>
+      ),
+      cell: ({ row }) => (
+        <div className="text-sm max-w-48 truncate" title={row.original.description}>
+          {row.original.description || 'N/A'}
         </div>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "status",
-    header: () => (
-      <div className="flex items-center gap-2">
-        <IconCircleFilled className="w-4 h-4" />
-        Status
-      </div>
-    ),
-    cell: ({ row }) => getStatusBadge(row.original.status),
-  },
-  {
-    id: "actions",
-    cell: () => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
-            size="icon"
-          >
-            <IconDotsVertical />
-            <span className="sr-only">Open menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem>View Details</DropdownMenuItem>
-          <DropdownMenuItem>Download Receipt</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive">Dispute</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
-  },
-]
+      ),
+    },
+    actions: {
+      id: "actions",
+      cell: () => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
+              size="icon"
+            >
+              <IconDotsVertical />
+              <span className="sr-only">Open menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-32">
+            <DropdownMenuItem>View Details</DropdownMenuItem>
+            <DropdownMenuItem>Download Receipt</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive">Dispute</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  };
 
-function DraggableRow({ row }: { row: Row<Transaction> }) {
-  const { transform, transition, setNodeRef, isDragging } = useSortable({
-    id: row.original.uuid,
-  })
+  return columnOrder.map(id => allColumns[id]).filter(Boolean);
+};
 
-  return (
-    <TableRow
-      data-state={row.getIsSelected() && "selected"}
-      data-dragging={isDragging}
-      ref={setNodeRef}
-      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition: transition,
-      }}
-    >
-      {row.getVisibleCells().map((cell) => (
-        <TableCell key={cell.id}>
-          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-        </TableCell>
-      ))}
-    </TableRow>
-  )
-}
 
 function LoadingState() {
   return (
@@ -440,47 +523,65 @@ function ErrorState({ error, onRetry }: { error: string; onRetry: () => void }) 
 }
 
 export function TransactionsTable() {
-  const { transactions, loading, error, refresh } = useDashboard();
+  const { user } = useAuth();
+  const paginatedTransactions = useAtomValue(paginatedTransactionsAtom);
+  const loading = useAtomValue(transactionsLoadingAtom);
+  const error = useAtomValue(transactionsErrorAtom);
+  const [pagination, setPagination] = useAtom(transactionsPaginationAtom);
+  const fetchTransactions = useSetAtom(fetchPaginatedTransactionsAtom);
+  
   const [data, setData] = React.useState<Transaction[]>([])
   const [activeTab, setActiveTab] = React.useState("all")
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [sorting, setSorting] = React.useState<SortingState>([])
-  const [pagination, setPagination] = React.useState({
-    pageIndex: 0,
-    pageSize: 10,
-  })
+  const [columnOrder, setColumnOrder] = React.useState<string[]>([
+    'select', 'customer', 'date', 'tid', 'processor', 'reference', 
+    'amount', 'status', 'type', 'surcharge', 'description', 'actions'
+  ])
 
   const sortableId = React.useId()
   const sensors = useSensors(
-    useSensor(MouseSensor, {}),
-    useSensor(TouchSensor, {}),
-    useSensor(KeyboardSensor, {})
+    useSensor(MouseSensor, {})
   )
+  
+  const columns = React.useMemo(() => createColumns(columnOrder), [columnOrder])
 
-  // Update data when transactions change
+  // Load transactions on mount and when pagination changes
   React.useEffect(() => {
-    if (transactions) {
-      setData(transactions)
+    const merchantId = user?.role === 'MERCHANT' || user?.role === 'SUB_MERCHANT' 
+      ? user.merchantId 
+      : undefined;
+    fetchTransactions({ 
+      page: pagination.page, 
+      perPage: pagination.perPage, 
+      merchantId 
+    });
+  }, [fetchTransactions, pagination.page, pagination.perPage, user]);
+
+  // Update data when paginated transactions change
+  React.useEffect(() => {
+    if (paginatedTransactions?.data) {
+      setData(paginatedTransactions.data)
     }
-  }, [transactions])
+  }, [paginatedTransactions])
 
   // Filter data based on active tab
   const filteredData = React.useMemo(() => {
     if (!data) return []
     
     if (activeTab === "all") return data
-    if (activeTab === "collection") return data.filter(t => t.type === 'MONEY_IN')
-    if (activeTab === "payout") return data.filter(t => t.type === 'MONEY_OUT')
-    if (activeTab === "reversal") return data.filter(t => t.status === 'FAILED') // Assuming reversals are failed transactions
+    if (activeTab === "collection") return data.filter(t => getTransactionType(t) === 'MONEY_IN')
+    if (activeTab === "payout") return data.filter(t => getTransactionType(t) === 'MONEY_OUT')
+    if (activeTab === "reversal") return data.filter(t => t.status?.toLowerCase() === 'failed')
     
     return data
   }, [data, activeTab])
 
-  const dataIds = React.useMemo<UniqueIdentifier[]>(
-    () => filteredData?.map(({ uuid }) => uuid) || [],
-    [filteredData]
+  const columnIds = React.useMemo(
+    () => columnOrder,
+    [columnOrder]
   )
 
   const table = useReactTable({
@@ -491,18 +592,33 @@ export function TransactionsTable() {
       columnVisibility,
       rowSelection,
       columnFilters,
-      pagination,
+      pagination: {
+        pageIndex: pagination.page - 1, // TanStack uses 0-based indexing
+        pageSize: pagination.perPage,
+      },
     },
     getRowId: (row) => row.uuid,
     enableRowSelection: true,
+    manualPagination: true, // Enable manual pagination
+    pageCount: paginatedTransactions?.lastPage || 0,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: setPagination,
+    onPaginationChange: (updater) => {
+      if (typeof updater === 'function') {
+        const newPagination = updater({
+          pageIndex: pagination.page - 1,
+          pageSize: pagination.perPage,
+        });
+        setPagination({
+          page: newPagination.pageIndex + 1, // Convert back to 1-based
+          perPage: newPagination.pageSize,
+        });
+      }
+    },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
@@ -511,10 +627,10 @@ export function TransactionsTable() {
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
     if (active && over && active.id !== over.id) {
-      setData((data) => {
-        const oldIndex = dataIds.indexOf(active.id)
-        const newIndex = dataIds.indexOf(over.id)
-        return arrayMove(data, oldIndex, newIndex)
+      setColumnOrder((columns) => {
+        const oldIndex = columns.indexOf(active.id as string)
+        const newIndex = columns.indexOf(over.id as string)
+        return arrayMove(columns, oldIndex, newIndex)
       })
     }
   }
@@ -526,7 +642,17 @@ export function TransactionsTable() {
 
   // Show error state
   if (error) {
-    return <ErrorState error={error} onRetry={refresh} />
+    const handleRetry = () => {
+      const merchantId = user?.role === 'MERCHANT' || user?.role === 'SUB_MERCHANT' 
+        ? user.merchantId 
+        : undefined;
+      fetchTransactions({ 
+        page: pagination.page, 
+        perPage: pagination.perPage, 
+        merchantId 
+      });
+    };
+    return <ErrorState error={error} onRetry={handleRetry} />
   }
 
   return (
@@ -587,62 +713,70 @@ export function TransactionsTable() {
 
       <TabsContent value={activeTab} className="relative flex flex-col gap-4 overflow-auto">
         <div className="overflow-hidden rounded-lg border">
-          <DndContext
-            collisionDetection={closestCenter}
-            modifiers={[restrictToVerticalAxis]}
-            onDragEnd={handleDragEnd}
-            sensors={sensors}
-            id={sortableId}
-          >
-            <Table>
+          <Table>
+            <DndContext
+              collisionDetection={closestCenter}
+              modifiers={[restrictToHorizontalAxis]}
+              onDragEnd={handleDragEnd}
+              sensors={sensors}
+              id={sortableId}
+            >
               <TableHeader className="bg-muted sticky top-0 z-10">
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      return (
-                        <TableHead key={header.id} colSpan={header.colSpan}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </TableHead>
-                      )
-                    })}
-                  </TableRow>
-                ))}
+                <SortableContext
+                  items={columnIds}
+                  strategy={horizontalListSortingStrategy}
+                >
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => {
+                        return (
+                          <TableHead key={header.id} colSpan={header.colSpan}>
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext()
+                                )}
+                          </TableHead>
+                        )
+                      })}
+                    </TableRow>
+                  ))}
+                </SortableContext>
               </TableHeader>
-              <TableBody className="**:data-[slot=table-cell]:first:w-8">
-                {table.getRowModel().rows?.length ? (
-                  <SortableContext
-                    items={dataIds}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    {table.getRowModel().rows.map((row) => (
-                      <DraggableRow key={row.id} row={row} />
+            </DndContext>
+            <TableBody className="**:data-[slot=table-cell]:first:w-8">
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
                     ))}
-                  </SortableContext>
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
-                      No transactions found.
-                    </TableCell>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </DndContext>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No transactions found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
         
         {/* Pagination */}
         <div className="flex items-center justify-between px-4">
           <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-            {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
+            {paginatedTransactions ? 
+              `Showing ${paginatedTransactions.from}-${paginatedTransactions.to} of ${paginatedTransactions.total} transactions` :
+              'No data'
+            }
           </div>
           <div className="flex w-full items-center gap-8 lg:w-fit">
             <div className="hidden items-center gap-2 lg:flex">
@@ -650,15 +784,16 @@ export function TransactionsTable() {
                 Rows per page
               </Label>
               <Select
-                value={`${table.getState().pagination.pageSize}`}
+                value={`${pagination.perPage}`}
                 onValueChange={(value) => {
-                  table.setPageSize(Number(value))
+                  setPagination({
+                    page: 1, // Reset to first page when changing page size
+                    perPage: Number(value)
+                  });
                 }}
               >
                 <SelectTrigger size="sm" className="w-20" id="rows-per-page">
-                  <SelectValue
-                    placeholder={table.getState().pagination.pageSize}
-                  />
+                  <SelectValue placeholder={pagination.perPage} />
                 </SelectTrigger>
                 <SelectContent side="top">
                   {[10, 20, 30, 40, 50].map((pageSize) => (
@@ -670,15 +805,14 @@ export function TransactionsTable() {
               </Select>
             </div>
             <div className="flex w-fit items-center justify-center text-sm font-medium">
-              Page {table.getState().pagination.pageIndex + 1} of{" "}
-              {table.getPageCount()}
+              Page {pagination.page} of {paginatedTransactions?.lastPage || 1}
             </div>
             <div className="ml-auto flex items-center gap-2 lg:ml-0">
               <Button
                 variant="outline"
                 className="hidden h-8 w-8 p-0 lg:flex"
-                onClick={() => table.setPageIndex(0)}
-                disabled={!table.getCanPreviousPage()}
+                onClick={() => setPagination(prev => ({ ...prev, page: 1 }))}
+                disabled={pagination.page === 1}
               >
                 <span className="sr-only">Go to first page</span>
                 <IconChevronsLeft />
@@ -687,8 +821,8 @@ export function TransactionsTable() {
                 variant="outline"
                 className="size-8"
                 size="icon"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
+                onClick={() => setPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
+                disabled={pagination.page === 1}
               >
                 <span className="sr-only">Go to previous page</span>
                 <IconChevronLeft />
@@ -697,8 +831,8 @@ export function TransactionsTable() {
                 variant="outline"
                 className="size-8"
                 size="icon"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
+                onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+                disabled={pagination.page >= (paginatedTransactions?.lastPage || 1)}
               >
                 <span className="sr-only">Go to next page</span>
                 <IconChevronRight />
@@ -707,8 +841,8 @@ export function TransactionsTable() {
                 variant="outline"
                 className="hidden size-8 lg:flex"
                 size="icon"
-                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                disabled={!table.getCanNextPage()}
+                onClick={() => setPagination(prev => ({ ...prev, page: paginatedTransactions?.lastPage || 1 }))}
+                disabled={pagination.page >= (paginatedTransactions?.lastPage || 1)}
               >
                 <span className="sr-only">Go to last page</span>
                 <IconChevronsRight />
