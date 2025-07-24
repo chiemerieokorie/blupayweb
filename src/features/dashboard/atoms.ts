@@ -55,8 +55,8 @@ export const fetchWalletBalanceAtom = atom(
       set(walletBalanceAtom, balance);
       return balance;
     } catch (error) {
-      console.error('Failed to fetch wallet balance:', error);
-      throw error;
+      set(walletBalanceAtom, null);
+      return null;
     }
   }
 );
@@ -74,12 +74,12 @@ export const fetchRecentTransactionsAtom = atom(
       };
       
       const response = await transactionsService.getTransactions(filters);
-      set(recentTransactionsAtom, response.data);
+      set(recentTransactionsAtom, response?.data || []);
       
-      return response.data;
+      return response?.data || [];
     } catch (error) {
-      console.error('Failed to fetch recent transactions:', error);
-      throw error;
+      set(recentTransactionsAtom, []);
+      return [];
     }
   }
 );
@@ -87,7 +87,7 @@ export const fetchRecentTransactionsAtom = atom(
 export const refreshDashboardAtom = atom(
   null,
   async (get, set, merchantId?: string) => {
-    await Promise.all([
+    const results = await Promise.allSettled([
       set(fetchDashboardAnalyticsAtom, merchantId),
       set(fetchWalletBalanceAtom),
       set(fetchRecentTransactionsAtom, merchantId),
