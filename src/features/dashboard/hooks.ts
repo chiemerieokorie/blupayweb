@@ -1,5 +1,5 @@
-import { useAtom, useAtomValue, useSetAtom } from 'jotai';
-import { useCallback, useEffect } from 'react';
+import { useAtom, useAtomValue } from 'jotai';
+import { useCallback, useEffect, useMemo } from 'react';
 import {
   dashboardAnalyticsAtom,
   walletBalanceAtom,
@@ -7,88 +7,18 @@ import {
   dashboardLoadingAtom,
   dashboardErrorAtom,
   analyticsDateRangeAtom,
-  fetchDashboardAnalyticsAtom,
-  fetchWalletBalanceAtom,
-  fetchRecentTransactionsAtom,
   refreshDashboardAtom,
 } from './atoms';
 import { useAuth } from '@/features/auth/hooks';
-
-export function useDashboardAnalytics() {
-  const analytics = useAtomValue(dashboardAnalyticsAtom);
-  const loading = useAtomValue(dashboardLoadingAtom);
-  const error = useAtomValue(dashboardErrorAtom);
-  const [, fetchAnalytics] = useAtom(fetchDashboardAnalyticsAtom);
-  const { user } = useAuth();
-
-  const refetch = useCallback(async () => {
-    const merchantId = user?.role === 'MERCHANT' || user?.role === 'SUB_MERCHANT' 
-      ? user.merchantId 
-      : undefined;
-    await fetchAnalytics(merchantId);
-  }, [fetchAnalytics, user]);
-
-  return {
-    analytics,
-    loading,
-    error,
-    refetch,
-  };
-}
-
-export function useWalletBalance() {
-  const balance = useAtomValue(walletBalanceAtom);
-  const [, fetchBalance] = useAtom(fetchWalletBalanceAtom);
-
-  const refetch = useCallback(async () => {
-    await fetchBalance();
-  }, [fetchBalance]);
-
-  return {
-    balance,
-    refetch,
-  };
-}
-
-export function useRecentTransactions() {
-  const transactions = useAtomValue(recentTransactionsAtom);
-  const [, fetchTransactions] = useAtom(fetchRecentTransactionsAtom);
-  const { user } = useAuth();
-
-  const refetch = useCallback(async () => {
-    const merchantId = user?.role === 'MERCHANT' || user?.role === 'SUB_MERCHANT' 
-      ? user.merchantId 
-      : undefined;
-    await fetchTransactions(merchantId);
-  }, [fetchTransactions, user]);
-
-  return {
-    transactions,
-    refetch,
-  };
-}
-
-export function useAnalyticsDateRange() {
-  const [dateRange, setDateRange] = useAtom(analyticsDateRangeAtom);
-
-  const updateDateRange = useCallback(
-    (startDate: string, endDate: string) => {
-      setDateRange({ startDate, endDate });
-    },
-    [setDateRange]
-  );
-
-  return {
-    dateRange,
-    updateDateRange,
-  };
-}
+import { DollarSign, XCircle, Wallet } from 'lucide-react';
 
 export function useDashboard() {
-  const analytics = useDashboardAnalytics();
-  const balance = useWalletBalance();
-  const transactions = useRecentTransactions();
-  const dateRange = useAnalyticsDateRange();
+  const analytics = useAtomValue(dashboardAnalyticsAtom);
+  const balance = useAtomValue(walletBalanceAtom);
+  const transactions = useAtomValue(recentTransactionsAtom);
+  const loading = useAtomValue(dashboardLoadingAtom);
+  const error = useAtomValue(dashboardErrorAtom);
+  const [dateRange, setDateRange] = useAtom(analyticsDateRangeAtom);
   const [, refreshDashboard] = useAtom(refreshDashboardAtom);
   const { user } = useAuth();
 
@@ -99,21 +29,152 @@ export function useDashboard() {
     await refreshDashboard(merchantId);
   }, [refreshDashboard, user]);
 
+  const updateDateRange = useCallback(
+    (startDate: string, endDate: string) => {
+      setDateRange({ startDate, endDate });
+    },
+    [setDateRange]
+  );
+
+
+
   useEffect(() => {
     if (user) {
-      refresh();
+      void refresh();
     }
-  }, [user, refresh, dateRange.dateRange]);
+  }, [user, refresh, dateRange]);
 
-  const getRoleSpecificMetrics = useCallback(() => {
-    if (!analytics.analytics || !user) return null;
+
+  const analyticsCards = useMemo(() => {
+    if (!analytics) {
+      return [];
+    }
+
+    const data = analytics;
+    const isMerchant = user?.role === 'MERCHANT' || user?.role === 'SUB_MERCHANT';
+    const isPartner = user?.role === 'PARTNER_BANK';
+    const isAdmin = user?.role === 'ADMIN';
+
+    let cards = [];
+
+    // Collections (Money In) - All roles
+    cards.push({
+      id: 'collections',
+      title: 'Collections',
+      value: new Intl.NumberFormat("en-GH", {
+        style: "currency",
+        currency: "GHS",
+      }).format(data.successTotalMoneyInAmount || data.totalAmount || 0),
+      count: data.successTotalMoneyInCount || data.successfulTransactions || 0,
+      description: `${(data.successTotalMoneyInCount || data.successfulTransactions || 0).toLocaleString()} successful collections`,
+      Icon: DollarSign,
+      trend: (data.successTotalMoneyInAmount || data.totalAmount || 0) > 0 ? "up" : "neutral",
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+    });
+
+    // Failed Transactions - All roles
+    cards.push({
+      id: 'failed',
+      title: 'Failed Transactions',
+      value: new Intl.NumberFormat("en-GH", {
+        style: "currency",
+        currency: "GHS",
+      }).format(data.failedTotalAmount || 0),
+      count: data.failedTotalCount || data.failedTransactions || 0,
+      description: `${(data.failedTotalCount || data.failedTransactions || 0).toLocaleString()} failed transactions`,
+      Icon: XCircle,
+      trend: (data.failedTotalCount || data.failedTransactions || 0) === 0 ? "up" : "down",
+      color: "text-red-600",
+      bgColor: "bg-red-50",
+    });
+
+    // Wallet Balance - Merchants and Sub-Merchants
+    if (isMerchant) {
+      cards.push({
+        id: 'wallet',
+        title: 'Wallet Balance',
+        value: new Intl.NumberFormat("en-GH", {
+          style: "currency",
+          currency: "GHS",
+        }).format(balance?.balance || 0),
+        count: null,
+        description: 'Available balance',
+        Icon: Wallet,
+        trend: "neutral",
+        color: "text-blue-600",
+        bgColor: "bg-blue-50",
+        cta: {
+          ctaRoute: '/merchants/cashout',
+          ctaTitle: 'Make Payout',
+        },
+      });
+    }
+
+    // Payouts (Money Out) - All roles (4th card for everyone)
+    cards.push({
+      id: 'payouts',
+      title: 'Payouts',
+      value: new Intl.NumberFormat("en-GH", {
+        style: "currency",
+        currency: "GHS",
+      }).format(data.successTotalMoneyOutAmount || 0),
+      count: data.successTotalMoneyOutCount || 0,
+      description: `${(data.successTotalMoneyOutCount || 0).toLocaleString()} successful payouts`,
+      Icon: DollarSign,
+      trend: (data.successTotalMoneyOutAmount || 0) > 0 ? "up" : "neutral",
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
+    });
+
+    // For Partner Banks, add a System Overview card instead of Wallet Balance
+    if (isPartner && !isMerchant) {
+      cards.push({
+        id: 'system-overview',
+        title: 'System Overview',
+        value: new Intl.NumberFormat("en-GH", {
+          style: "currency",
+          currency: "GHS",
+        }).format((data.successTotalMoneyInAmount || 0) + (data.successTotalMoneyOutAmount || 0)),
+        count: (data.successTotalMoneyInCount || 0) + (data.successTotalMoneyOutCount || 0),
+        description: 'Total system activity',
+        Icon: DollarSign,
+        trend: "up",
+        color: "text-indigo-600",
+        bgColor: "bg-indigo-50",
+      });
+    }
+
+    // For Admins, add a System Health card instead of Wallet Balance  
+    if (isAdmin && !isMerchant) {
+      cards.push({
+        id: 'system-health',
+        title: 'System Health',
+        value: new Intl.NumberFormat("en-GH", {
+          style: "currency",
+          currency: "GHS",
+        }).format((data.successTotalMoneyInAmount || 0) + (data.successTotalMoneyOutAmount || 0)),
+        count: (data.successTotalMoneyInCount || 0) + (data.successTotalMoneyOutCount || 0),
+        description: 'Total platform activity',
+        Icon: DollarSign,
+        trend: "up",
+        color: "text-emerald-600",
+        bgColor: "bg-emerald-50",
+      });
+    }
+
+    return cards;
+  }, [analytics, balance, user?.role, loading, error]);
+
+  const roleSpecificMetrics = useMemo(() => {
+    if (!analytics || !user) return null;
 
     const baseMetrics = {
-      totalTransactions: analytics.analytics.totalTransactions,
-      totalAmount: analytics.analytics.totalAmount,
-      successfulTransactions: analytics.analytics.successfulTransactions,
-      failedTransactions: analytics.analytics.failedTransactions,
-      pendingTransactions: analytics.analytics.pendingTransactions,
+      totalTransactions: analytics.totalTransactions,
+      totalAmount: analytics.totalAmount,
+      successfulTransactions: analytics.successfulTransactions,
+      failedTransactions: analytics.failedTransactions,
+      pendingTransactions: analytics.pendingTransactions,
     };
 
     switch (user.role) {
@@ -151,16 +212,23 @@ export function useDashboard() {
       default:
         return baseMetrics;
     }
-  }, [analytics.analytics, user]);
+  }, [analytics, user]);
 
   return {
-    ...analytics,
-    balance: balance.balance,
-    transactions: transactions.transactions,
-    dateRange: dateRange.dateRange,
-    updateDateRange: dateRange.updateDateRange,
-    refresh,
-    roleSpecificMetrics: getRoleSpecificMetrics(),
+    analytics,
+    balance,
+    transactions,
+    loading,
+    error,
+    dateRange,
     user,
+    
+    // Processed data
+    analyticsCards,
+    roleSpecificMetrics,
+    
+    // Actions
+    refresh,
+    updateDateRange,
   };
 }
