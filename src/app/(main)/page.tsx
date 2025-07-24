@@ -4,6 +4,12 @@ import {ChartAreaInteractive} from "@/features/dashboard/chart-area-interactive"
 import {TransactionsTable} from "@/features/dashboard/transactions-table";
 import {ROUTES} from "@/lib/constants";
 import {AnalyticsCards} from "@/features/dashboard/analytics-cards";
+import {TransactionChart} from "@/features/dashboard/transaction-chart";
+
+import {TransactionMoneyInOutChart} from "@/features/dashboard/transactions-money-in-out-chart";
+import {TransactionStatusPieChart} from "@/features/dashboard/transtation-status-pie-chart";
+import {TransactionProcessorBarChart} from "@/features/dashboard/transaction-processor-bar-chart";
+
 
 export default function Home() {
     return (
