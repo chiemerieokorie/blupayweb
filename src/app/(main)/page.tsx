@@ -1,10 +1,9 @@
 import {BreadcrumbPage, BreadCrumbs, PageContainer, PageHeader} from "@/components/layout/page-container";
 import {BreadcrumbLink} from "@/components/ui/breadcrumb";
-import {ChartAreaInteractive} from "@/features/dashboard/chart-area-interactive";
+import {TransactionChart} from "@/features/dashboard/transaction-chart";
 import {TransactionsTable} from "@/features/dashboard/transactions-table";
 import {ROUTES} from "@/lib/constants";
 import {AnalyticsCards} from "@/features/dashboard/analytics-cards";
-import {TransactionChart} from "@/features/dashboard/transaction-chart";
 
 import {TransactionMoneyInOutChart} from "@/features/dashboard/transactions-money-in-out-chart";
 import {TransactionStatusPieChart} from "@/features/dashboard/transtation-status-pie-chart";
@@ -22,7 +21,6 @@ export default function Home() {
             </PageHeader>
             <AnalyticsCards/>
             <TransactionChart/>
-            <ChartAreaInteractive/>
 
             {/*<div className="grid grid-cols-1 md:grid-cols-3 gap-6">*/}
             {/*    <TransactionMoneyInOutChart/>*/}
