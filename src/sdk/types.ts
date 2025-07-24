@@ -256,6 +256,15 @@ export interface TransactionAnalytics {
   successfulTransactions: number;
   failedTransactions: number;
   pendingTransactions: number;
+  
+  // Enhanced analytics matching Angular dashboard
+  successTotalMoneyInCount?: number;
+  successTotalMoneyInAmount?: number;
+  successTotalMoneyOutCount?: number;
+  successTotalMoneyOutAmount?: number;
+  failedTotalCount?: number;
+  failedTotalAmount?: number;
+  
   transactionsByDate: Array<{
     date: string;
     count: number;
