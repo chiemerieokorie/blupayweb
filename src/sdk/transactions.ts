@@ -54,7 +54,15 @@ export class TransactionsService {
     return apiClient.post(`/transactions/${id}/reverse`);
   }
 
-  async getAnalytics(filters: { startDate?: string; endDate?: string; merchantId?: string } = {}): Promise<TransactionAnalytics> {
+  async getAnalytics(filters: { 
+    startDate?: string; 
+    endDate?: string; 
+    merchantId?: string;
+    range?: 'daily' | 'weekly' | 'monthly' | 'yearly';
+    month?: string;
+    year?: string;
+    partnerBankId?: string;
+  } = {}): Promise<TransactionAnalytics> {
     return apiClient.get('/transactions/analytics', filters);
   }
 

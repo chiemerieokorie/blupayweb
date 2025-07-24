@@ -39,7 +39,7 @@ export const analyticsDateRangeAtom = atom({
 
 export const fetchDashboardAnalyticsAtom = atom(
   null,
-  async (get, set, merchantId?: string) => {
+  async (get, set, params?: { merchantId?: string; range?: 'daily' | 'weekly' | 'monthly' | 'yearly' }) => {
     try {
       set(dashboardLoadingAtom, true);
       set(dashboardErrorAtom, null);
@@ -50,7 +50,8 @@ export const fetchDashboardAnalyticsAtom = atom(
       const filters = {
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
-        ...(merchantId && { merchantId }),
+        range: params?.range || 'daily', // Default to daily for chart data
+        ...(params?.merchantId && { merchantId: params.merchantId }),
       };
       
       const analytics = await transactionsService.getAnalytics(filters);
@@ -145,12 +146,12 @@ export const fetchPaginatedTransactionsAtom = atom(
 
 export const refreshDashboardAtom = atom(
   null,
-  async (get, set, merchantId?: string) => {
+  async (get, set, params?: { merchantId?: string; range?: 'daily' | 'weekly' | 'monthly' | 'yearly' }) => {
     const results = await Promise.allSettled([
-      set(fetchDashboardAnalyticsAtom, merchantId),
+      set(fetchDashboardAnalyticsAtom, params),
       set(fetchWalletBalanceAtom),
-      set(fetchRecentTransactionsAtom, merchantId),
-      set(fetchPaginatedTransactionsAtom, { merchantId }),
+      set(fetchRecentTransactionsAtom, params?.merchantId),
+      set(fetchPaginatedTransactionsAtom, { merchantId: params?.merchantId }),
     ]);
   }
 );

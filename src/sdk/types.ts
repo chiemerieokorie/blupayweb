@@ -270,6 +270,14 @@ export interface TransactionAnalytics {
     count: number;
     amount: number;
   }>;
+
+  timeScaleData?: Array<{
+    transactionHour?: string;
+    dayOfWeek?: string;
+    monthOfYear?: string;
+    successfulAmount: string;
+    failedAmount: string;
+  }>;
 }
 
 export interface WalletBalance {
