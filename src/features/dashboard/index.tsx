@@ -7,7 +7,7 @@ import { RefreshCw, Calendar } from 'lucide-react';
 import { useDashboard } from './hooks';
 import { AnalyticsCards } from './analytics-cards';
 import { TransactionChart } from './transaction-chart';
-import { RecentTransactions } from './recent-transactions';
+import { TransactionsTable } from './transactions-table';
 import { WalletBalanceCard } from './wallet-balance';
 
 export function Dashboard() {
@@ -99,8 +99,8 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Recent Transactions */}
-      <RecentTransactions />
+      {/* Transactions Table */}
+      <TransactionsTable />
 
       {/* Role-specific sections */}
       {user?.role === 'ADMIN' && (
