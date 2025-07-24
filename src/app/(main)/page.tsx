@@ -1,4 +1,3 @@
-import Dashboard from "@/features/dashboard";
 import {BreadcrumbPage, BreadCrumbs, PageContainer, PageHeader} from "@/components/layout/page-container";
 import {BreadcrumbLink} from "@/components/ui/breadcrumb";
 import {ChartAreaInteractive} from "@/features/dashboard/chart-area-interactive";
@@ -15,11 +14,18 @@ export default function Home() {
                     <BreadcrumbPage>Transaction Report</BreadcrumbPage>
                 </BreadCrumbs>
             </PageHeader>
-
-            {/*<Dashboard />*/}
             <AnalyticsCards/>
+            <TransactionChart/>
             <ChartAreaInteractive/>
-            <DataTable data={data}/>
+
+            {/*<div className="grid grid-cols-1 md:grid-cols-3 gap-6">*/}
+            {/*    <TransactionMoneyInOutChart/>*/}
+            {/*    <TransactionStatusPieChart/>*/}
+            {/*    <TransactionProcessorBarChart/>*/}
+            {/*</div>*/}
+
+
+            <TransactionsTable/>
         </PageContainer>
     );
 }
