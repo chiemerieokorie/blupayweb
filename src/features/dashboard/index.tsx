@@ -80,7 +80,7 @@ export function Dashboard() {
 
       {/* Analytics Cards */}
       {analytics && (
-        <AnalyticsCards analytics={analytics} loading={loading} />
+        <AnalyticsCards />
       )}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

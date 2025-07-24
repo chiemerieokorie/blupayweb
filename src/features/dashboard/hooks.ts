@@ -55,7 +55,7 @@ export function useDashboard() {
     const isPartner = user?.role === 'PARTNER_BANK';
     const isAdmin = user?.role === 'ADMIN';
 
-    let cards = [];
+    const cards = [];
 
     // Collections (Money In) - All roles
     cards.push({
@@ -68,7 +68,7 @@ export function useDashboard() {
       count: data.successTotalMoneyInCount || data.successfulTransactions || 0,
       description: `${(data.successTotalMoneyInCount || data.successfulTransactions || 0).toLocaleString()} successful collections`,
       Icon: DollarSign,
-      trend: (data.successTotalMoneyInAmount || data.totalAmount || 0) > 0 ? "up" : "neutral",
+      trend: (data.successTotalMoneyInAmount || data.totalAmount || 0) > 0 ? "up" as const : "neutral" as const,
       color: "text-green-600",
       bgColor: "bg-green-50",
     });
@@ -84,7 +84,7 @@ export function useDashboard() {
       count: data.failedTotalCount || data.failedTransactions || 0,
       description: `${(data.failedTotalCount || data.failedTransactions || 0).toLocaleString()} failed transactions`,
       Icon: XCircle,
-      trend: (data.failedTotalCount || data.failedTransactions || 0) === 0 ? "up" : "down",
+      trend: (data.failedTotalCount || data.failedTransactions || 0) === 0 ? "up" as const : "down" as const,
       color: "text-red-600",
       bgColor: "bg-red-50",
     });
@@ -101,7 +101,7 @@ export function useDashboard() {
         count: null,
         description: 'Available balance',
         Icon: Wallet,
-        trend: "neutral",
+        trend: "neutral" as const,
         color: "text-blue-600",
         bgColor: "bg-blue-50",
         cta: {
@@ -122,7 +122,7 @@ export function useDashboard() {
       count: data.successTotalMoneyOutCount || 0,
       description: `${(data.successTotalMoneyOutCount || 0).toLocaleString()} successful payouts`,
       Icon: DollarSign,
-      trend: (data.successTotalMoneyOutAmount || 0) > 0 ? "up" : "neutral",
+      trend: (data.successTotalMoneyOutAmount || 0) > 0 ? "up" as const : "neutral" as const,
       color: "text-purple-600",
       bgColor: "bg-purple-50",
     });
@@ -139,7 +139,7 @@ export function useDashboard() {
         count: (data.successTotalMoneyInCount || 0) + (data.successTotalMoneyOutCount || 0),
         description: 'Total system activity',
         Icon: DollarSign,
-        trend: "up",
+        trend: "up" as const,
         color: "text-indigo-600",
         bgColor: "bg-indigo-50",
       });
@@ -157,7 +157,7 @@ export function useDashboard() {
         count: (data.successTotalMoneyInCount || 0) + (data.successTotalMoneyOutCount || 0),
         description: 'Total platform activity',
         Icon: DollarSign,
-        trend: "up",
+        trend: "up" as const,
         color: "text-emerald-600",
         bgColor: "bg-emerald-50",
       });
