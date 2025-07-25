@@ -1,9 +1,9 @@
 import { apiClient } from './client';
-import { PartnerBank, CreatePartnerBankDto, UpdatePartnerBankDto, ApiResponse } from './types';
+import { PartnerBank, CreatePartnerBankDto, UpdatePartnerBankDto, PaginatedResponse } from './types';
 
 export const partnerBankService = {
-  async getPartnerBanks(params?: Record<string, unknown>): Promise<ApiResponse<PartnerBank[]>> {
-    return apiClient.get('/partner-banks', params);
+  async getPartnerBanks(params?: Record<string, unknown>): Promise<PaginatedResponse<PartnerBank>> {
+    return apiClient.get('/partner-banks', { params });
   },
 
   async getPartnerBank(id: string): Promise<PartnerBank> {
