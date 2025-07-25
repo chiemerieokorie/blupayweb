@@ -20,7 +20,7 @@ export function useCommissions() {
       setCommissionsState(prev => ({
         ...prev,
         commissions: response.data || [],
-        total: response.total || 0,
+        total: response.meta?.total || 0,
         loading: false,
       }));
       
