@@ -72,5 +72,33 @@ export const ROUTES = {
         PROFILE: '/settings/profile',
     },
     HELP: "/help",
+    
+    BANKS: {
+        INDEX: '/banks',
+        CREATE: '/banks/create',
+        EDIT: (id: string) => `/banks/edit/${id}`,
+        VIEW: (id: string) => `/banks/view/${id}`,
+    },
+    SETTLEMENTS: {
+        INDEX: '/settlements',
+        CREATE: '/settlements/create',
+        EDIT: (id: string) => `/settlements/edit/${id}`,
+        VIEW: (id: string) => `/settlements/view/${id}`,
+    },
+    TELCOS: {
+        INDEX: '/telcos',
+        CREATE: '/telcos/create',
+        EDIT: (id: string) => `/telcos/edit/${id}`,
+        VIEW: (id: string) => `/telcos/view/${id}`,
+    },
+    CASHOUT: {
+        INDEX: '/cashout',
+    },
+    REMITTANCE: {
+        INDEX: '/remittance',
+    },
+    SP_TRANSFERS: {
+        INDEX: '/sp-transfers',
+    },
 
 } as const;
