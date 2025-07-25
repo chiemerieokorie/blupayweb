@@ -71,46 +71,46 @@ const getNavigationData = (user: { firstName: string; lastName: string; email: s
             url: ROUTES.PARTNER_BANKS.INDEX,
             icon: IconBuildingBank,
         },
-        {
-            name: "Devices",
-            url: ROUTES.DEVICES.INDEX,
-            icon: IconDeviceTabletDollar,
-        },
-        {
-            name: "Settlements",
-            url: ROUTES.SETTLEMENTS.INDEX,
-            icon: IconPigMoney,
-        },
-        {
-            name: "Telcos",
-            url: ROUTES.TELCOS.INDEX,
-            icon: IconWorldWww,
-        },
-        {
-            name: "Cashout",
-            url: ROUTES.CASHOUT.INDEX,
-            icon: IconMoneybag,
-        },
-        {
-            name: "Remittance",
-            url: ROUTES.REMITTANCE.INDEX,
-            icon: IconTransfer,
-        },
-        {
-            name: "SP Transfers",
-            url: ROUTES.SP_TRANSFERS.INDEX,
-            icon: IconFileText,
-        },
+        // {
+        //     name: "Devices",
+        //     url: ROUTES.DEVICES.INDEX,
+        //     icon: IconDeviceTabletDollar,
+        // },
+        // {
+        //     name: "Settlements",
+        //     url: ROUTES.SETTLEMENTS.INDEX,
+        //     icon: IconPigMoney,
+        // },
+        // {
+        //     name: "Telcos",
+        //     url: ROUTES.TELCOS.INDEX,
+        //     icon: IconWorldWww,
+        // },
+        // {
+        //     name: "Cashout",
+        //     url: ROUTES.CASHOUT.INDEX,
+        //     icon: IconMoneybag,
+        // },
+        // {
+        //     name: "Remittance",
+        //     url: ROUTES.REMITTANCE.INDEX,
+        //     icon: IconTransfer,
+        // },
+        // {
+        //     name: "SP Transfers",
+        //     url: ROUTES.SP_TRANSFERS.INDEX,
+        //     icon: IconFileText,
+        // },
         {
             name: "Sub-Merchants",
             url: ROUTES.SUB_MERCHANTS.INDEX,
             icon: IconAffiliate,
         },
-        {
-            name: "API Keys",
-            url: ROUTES.API_KEYS.INDEX,
-            icon: IconSettings,
-        },
+        // {
+        //     name: "API Keys",
+        //     url: ROUTES.API_KEYS.INDEX,
+        //     icon: IconSettings,
+        // },
     ];
 
     const merchantManagement = [
