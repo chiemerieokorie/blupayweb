@@ -1,8 +1,8 @@
 import { atom } from 'jotai';
-import { Merchant, SubMerchant, MerchantApiKeys, ApiResponse } from '@/sdk/types';
+import { Merchant, SubMerchant, MerchantApiKeys, PaginatedResponse } from '@/sdk/types';
 import { MerchantFilters } from '@/sdk/types';
 
-export const merchantsAtom = atom<ApiResponse<Merchant[]> | null>(null);
+export const merchantsAtom = atom<PaginatedResponse<Merchant> | null>(null);
 
 export const subMerchantsAtom = atom<SubMerchant[]>([]);
 
