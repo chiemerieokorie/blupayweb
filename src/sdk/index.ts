@@ -6,3 +6,5 @@ export * from './merchants';
 export * from './users';
 export * from './devices';
 export * from './partner-banks';
+export * from './settlements';
+export * from './telcos-mgt';
