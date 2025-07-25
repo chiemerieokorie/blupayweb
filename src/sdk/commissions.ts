@@ -1,9 +1,10 @@
 import { apiClient } from './client';
-import { ApiResponse, Commission, CreateCommissionDto, UpdateCommissionDto } from './types';
+import { ApiResponse, PaginatedResponse, Commission, CreateCommissionDto, UpdateCommissionDto } from './types';
 
 export const commissionService = {
-  async getCommissions(params?: Record<string, unknown>): Promise<ApiResponse<Commission[]>> {
-    return apiClient.get('/commissions', params);
+  async getCommissions(params?: Record<string, unknown>): Promise<PaginatedResponse<Commission>> {
+    const response = await apiClient.get<ApiResponse<PaginatedResponse<Commission>>>('/commissions', { params });
+    return response.data;
   },
 
   async getCommission(id: string): Promise<Commission> {
