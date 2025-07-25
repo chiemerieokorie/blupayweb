@@ -93,7 +93,7 @@ import {
 } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
-import { Transaction, TransactionStatus, TransactionType } from "@/sdk/types"
+import { Transaction, TransactionStatus, TransactionType, UserRoleEnum } from "@/sdk/types"
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { 
   paginatedTransactionsAtom, 
@@ -530,7 +530,7 @@ export function TransactionsTable() {
 
   // Load transactions on mount and when pagination changes
   React.useEffect(() => {
-    const merchantId = user?.role === 'MERCHANT' || user?.role === 'SUB_MERCHANT' 
+    const merchantId = user?.role === UserRoleEnum.MERCHANT || user?.role === UserRoleEnum.SUB_MERCHANT 
       ? user.merchantId 
       : undefined;
     fetchTransactions({ 
@@ -625,7 +625,7 @@ export function TransactionsTable() {
   // Show error state
   if (error) {
     const handleRetry = () => {
-      const merchantId = user?.role === 'MERCHANT' || user?.role === 'SUB_MERCHANT' 
+      const merchantId = user?.role === UserRoleEnum.MERCHANT || user?.role === UserRoleEnum.SUB_MERCHANT 
         ? user.merchantId 
         : undefined;
       fetchTransactions({ 
