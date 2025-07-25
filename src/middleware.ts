@@ -1,5 +1,6 @@
 import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
+import { UserRoleEnum } from '@/sdk/types';
 
 export default withAuth(
   function middleware(req) {
@@ -19,11 +20,11 @@ export default withAuth(
 
     const userRole = token?.user?.role;
     
-    if (pathname.startsWith('/admin') && userRole !== 'ADMIN') {
+    if (pathname.startsWith('/admin') && userRole !== UserRoleEnum.ADMIN) {
       return NextResponse.redirect(new URL('/unauthorized', req.url));
     }
 
-    if (pathname.startsWith('/partner') && userRole !== 'PARTNER_BANK') {
+    if (pathname.startsWith('/partner') && userRole !== UserRoleEnum.PARTNER_BANK) {
       return NextResponse.redirect(new URL('/unauthorized', req.url));
     }
 
