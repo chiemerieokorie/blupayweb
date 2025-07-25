@@ -67,11 +67,6 @@ const getNavigationData = (user: { firstName: string; lastName: string; email: s
             icon: IconUsers,
         },
         {
-            name: "Banks",
-            url: ROUTES.BANKS.INDEX,
-            icon: IconBuildingBank,
-        },
-        {
             name: "Partner Banks",
             url: ROUTES.PARTNER_BANKS.INDEX,
             icon: IconBuildingBank,

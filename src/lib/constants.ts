@@ -73,12 +73,6 @@ export const ROUTES = {
     },
     HELP: "/help",
     
-    BANKS: {
-        INDEX: '/banks',
-        CREATE: '/banks/create',
-        EDIT: (id: string) => `/banks/edit/${id}`,
-        VIEW: (id: string) => `/banks/view/${id}`,
-    },
     SETTLEMENTS: {
         INDEX: '/settlements',
         CREATE: '/settlements/create',
