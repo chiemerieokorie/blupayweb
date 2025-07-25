@@ -1,8 +1,5 @@
-"use client";
-
 import { atom } from 'jotai';
-import { atomWithStorage } from 'jotai/utils';
-import { Commission } from '@/sdk/types';
+import { Commission, PaginatedResponse } from '@/sdk/types';
 
 export interface CommissionsFilter {
   search?: string;
@@ -18,36 +15,41 @@ export interface CommissionsFilter {
   limit?: number;
 }
 
-export interface CommissionsState {
-  commissions: Commission[];
-  total: number;
-  loading: boolean;
-  error: string | null;
-  selectedCommission: Commission | null;
-  filter: CommissionsFilter;
-}
+export const commissionsAtom = atom<PaginatedResponse<Commission> | null>(null);
 
-const initialCommissionsState: CommissionsState = {
-  commissions: [],
-  total: 0,
-  loading: false,
-  error: null,
-  selectedCommission: null,
-  filter: {
-    page: 1,
-    limit: 10,
-    sortBy: 'createdAt',
-    sortOrder: 'desc',
-  },
-};
-
-export const commissionsAtom = atom<CommissionsState>(initialCommissionsState);
-
-export const commissionsFilterAtom = atomWithStorage<CommissionsFilter>('commissions-filter', {
+export const commissionsFiltersAtom = atom<CommissionsFilter>({
   page: 1,
   limit: 10,
   sortBy: 'createdAt',
   sortOrder: 'desc',
 });
 
+export const commissionsLoadingAtom = atom(false);
+
+export const commissionsErrorAtom = atom<string | null>(null);
+
 export const selectedCommissionAtom = atom<Commission | null>(null);
+
+export const fetchCommissionsAtom = atom(
+  null,
+  async (get, set) => {
+    try {
+      set(commissionsLoadingAtom, true);
+      set(commissionsErrorAtom, null);
+      
+      const { commissionService } = await import('@/sdk/commissions');
+      const filters = get(commissionsFiltersAtom);
+      
+      const response = await commissionService.getCommissions(filters);
+      set(commissionsAtom, response);
+      
+      return response;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to fetch commissions';
+      set(commissionsErrorAtom, message);
+      throw error;
+    } finally {
+      set(commissionsLoadingAtom, false);
+    }
+  }
+);

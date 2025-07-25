@@ -8,3 +8,4 @@ export * from './devices';
 export * from './partner-banks';
 export * from './settlements';
 export * from './telcos-mgt';
+export * from './commissions';

@@ -7,11 +7,11 @@ import { CommissionsTable } from "./commissions-table";
 import { useCommissions } from "./hooks";
 
 export default function CommissionsPage() {
-  const { fetchCommissions, total, loading, error } = useCommissions();
+  const { fetchCommissions, total, loading, error, filters } = useCommissions();
 
   useEffect(() => {
     fetchCommissions();
-  }, [fetchCommissions]);
+  }, [fetchCommissions, filters]);
 
   if (error) {
     return (
