@@ -1,5 +1,6 @@
 import { useAtom, useAtomValue } from 'jotai';
 import { useCallback, useEffect, useMemo } from 'react';
+import { UserRoleEnum } from '@/sdk/types';
 import {
   dashboardAnalyticsAtom,
   walletBalanceAtom,
@@ -23,7 +24,7 @@ export function useDashboard() {
   const { user } = useAuth();
 
   const refresh = useCallback(async () => {
-    const merchantId = user?.role === 'MERCHANT' || user?.role === 'SUB_MERCHANT' 
+    const merchantId = user?.role === UserRoleEnum.MERCHANT || user?.role === UserRoleEnum.SUB_MERCHANT 
       ? user.merchantId 
       : undefined;
     await refreshDashboard({ merchantId });
@@ -51,9 +52,9 @@ export function useDashboard() {
     }
 
     const data = analytics;
-    const isMerchant = user?.role === 'MERCHANT' || user?.role === 'SUB_MERCHANT';
-    const isPartner = user?.role === 'PARTNER_BANK';
-    const isAdmin = user?.role === 'ADMIN';
+    const isMerchant = user?.role === UserRoleEnum.MERCHANT || user?.role === UserRoleEnum.SUB_MERCHANT;
+    const isPartner = user?.role === UserRoleEnum.PARTNER_BANK;
+    const isAdmin = user?.role === UserRoleEnum.ADMIN;
 
     const cards = [];
 
@@ -178,7 +179,7 @@ export function useDashboard() {
     };
 
     switch (user.role) {
-      case 'ADMIN':
+      case UserRoleEnum.ADMIN:
         return {
           ...baseMetrics,
           title: 'System Overview',
@@ -186,7 +187,7 @@ export function useDashboard() {
           showPartnerBankBreakdown: true,
         };
       
-      case 'PARTNER_BANK':
+      case UserRoleEnum.PARTNER_BANK:
         return {
           ...baseMetrics,
           title: 'Partner Bank Dashboard',
@@ -194,7 +195,7 @@ export function useDashboard() {
           showPartnerBankBreakdown: false,
         };
       
-      case 'MERCHANT':
+      case UserRoleEnum.MERCHANT:
         return {
           ...baseMetrics,
           title: 'Merchant Dashboard',
@@ -202,7 +203,7 @@ export function useDashboard() {
           showApiKeyManagement: true,
         };
       
-      case 'SUB_MERCHANT':
+      case UserRoleEnum.SUB_MERCHANT:
         return {
           ...baseMetrics,
           title: 'Sub-Merchant Dashboard',
