@@ -3,6 +3,7 @@
 import * as React from "react"
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
+import { UserRoleEnum } from '@/sdk/types'
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import {
@@ -95,7 +96,7 @@ export function TransactionChart() {
 
   // Fetch analytics data when timeRange changes
   React.useEffect(() => {
-    const merchantId = user?.role === 'MERCHANT' || user?.role === 'SUB_MERCHANT' 
+    const merchantId = user?.role === UserRoleEnum.MERCHANT || user?.role === UserRoleEnum.SUB_MERCHANT 
       ? user.merchantId 
       : undefined
     fetchAnalytics({ merchantId, range: timeRange })
