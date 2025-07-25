@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { useUsers } from "./hooks";
 import { useToast } from "@/hooks/use-toast";
+import { UserRoleEnum } from "@/sdk/types";
 
 const createUserSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -77,7 +78,7 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
         delete userData.partnerBankId;
       }
 
-      await createUser(userData);
+      await createUser({ ...userData, role: userData.role as UserRoleEnum });
       
       toast({
         title: "Success",
