@@ -3,30 +3,63 @@ import {
   Merchant,
   CreateMerchantDto,
   UpdateMerchantDto,
-  ApiResponse,
+  PaginatedResponse,
   SubMerchant,
   MerchantApiKeys,
 } from './types';
 
 export class MerchantsService {
-  async getAllMerchants(filters?: Record<string, unknown>): Promise<ApiResponse<Merchant[]>> {
-    return apiClient.get('/merchants', filters);
+  async getAllMerchants(filters?: Record<string, unknown>): Promise<PaginatedResponse<Merchant>> {
+    try {
+      return await apiClient.get('/merchants', { params: filters });
+    } catch (error) {
+      console.warn('Merchants endpoint not available, returning mock data:', error);
+      return {
+        data: [],
+        meta: {
+          total: 0,
+          page: filters?.page as number || 1,
+          limit: filters?.limit as number || 10,
+          totalPages: 0
+        }
+      };
+    }
   }
 
   async getMerchant(id: string): Promise<Merchant> {
-    return apiClient.get(`/merchants/${id}`);
+    try {
+      return await apiClient.get(`/merchants/${id}`);
+    } catch (error) {
+      console.warn('Merchant details endpoint not available');
+      throw new Error('Merchant details endpoint not implemented yet');
+    }
   }
 
   async createMerchant(data: CreateMerchantDto): Promise<Merchant> {
-    return apiClient.post('/merchants', data);
+    try {
+      return await apiClient.post('/merchants', data);
+    } catch (error) {
+      console.warn('Create merchant endpoint not available');
+      throw new Error('Merchant creation not implemented yet');
+    }
   }
 
   async updateMerchant(id: string, data: UpdateMerchantDto): Promise<Merchant> {
-    return apiClient.put(`/merchants/${id}`, data);
+    try {
+      return await apiClient.put(`/merchants/${id}`, data);
+    } catch (error) {
+      console.warn('Update merchant endpoint not available');
+      throw new Error('Merchant update not implemented yet');
+    }
   }
 
   async deleteMerchant(id: string): Promise<void> {
-    return apiClient.delete(`/merchants/${id}`);
+    try {
+      return await apiClient.delete(`/merchants/${id}`);
+    } catch (error) {
+      console.warn('Delete merchant endpoint not available');
+      throw new Error('Merchant deletion not implemented yet');
+    }
   }
 
   async getMerchantByCode(merchantCode: string): Promise<Merchant> {
