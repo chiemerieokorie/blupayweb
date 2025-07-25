@@ -9,8 +9,6 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <PageContainer>
       <UsersPage />
-    </PageContainer>
   );
 }
