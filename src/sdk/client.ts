@@ -79,9 +79,9 @@ export class ApiClient {
     }
   }
 
-  async post<T>(url: string, data?: unknown): Promise<T> {
+  async post<T>(url: string, data?: unknown, config?: { headers?: Record<string, string> }): Promise<T> {
     try {
-      const response = await this.client.post<ApiResponse<T>>(url, data);
+      const response = await this.client.post<ApiResponse<T>>(url, data, config);
       return validateApiResponse(
         response.data,
         { endpoint: url, method: 'POST' },
