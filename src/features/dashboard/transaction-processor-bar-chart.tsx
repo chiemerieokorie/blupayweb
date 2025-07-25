@@ -4,6 +4,7 @@ import * as React from "react"
 import { TrendingUp } from "lucide-react"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { useAtomValue, useSetAtom } from 'jotai'
+import { UserRoleEnum } from '@/sdk/types'
 
 import {
     Card,
@@ -50,7 +51,7 @@ export function TransactionProcessorBarChart() {
 
     // Fetch larger dataset for aggregation (first 100 transactions)
     React.useEffect(() => {
-        const merchantId = user?.role === 'MERCHANT' || user?.role === 'SUB_MERCHANT' 
+        const merchantId = user?.role === UserRoleEnum.MERCHANT || user?.role === UserRoleEnum.SUB_MERCHANT 
             ? user.merchantId 
             : undefined
         fetchTransactions({ 
