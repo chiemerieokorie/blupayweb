@@ -84,7 +84,7 @@ export interface User {
   lastName: string;
   email: string;
   phoneNumber?: string;
-  role: UserRole;
+  role: UserRoleEnum;
   status: UserStatus;
   smsEnabled?: boolean;
   emailEnabled?: boolean;
@@ -96,7 +96,14 @@ export interface User {
   updatedAt: string;
 }
 
-export type UserRole = 'ADMIN' | 'MERCHANT' | 'PARTNER_BANK' | 'SUB_MERCHANT';
+export enum UserRoleEnum {
+  MERCHANT = 'merchant',
+  ADMIN = 'administrator',
+  SUB_MERCHANT = 'submerchant',
+  PARTNER_BANK = 'partner-bank',
+}
+
+
 export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'SUSPENDED';
 
 export interface Merchant {
@@ -388,7 +395,7 @@ export interface CreateUserDto {
   email: string;
   password: string;
   phoneNumber?: string;
-  role: UserRole;
+  role: UserRoleEnum;
   partnerBankId?: string;
 }
 
@@ -397,7 +404,7 @@ export interface UpdateUserDto {
   lastName?: string;
   email?: string;
   phoneNumber?: string;
-  role?: UserRole;
+  role?: UserRoleEnum;
   status?: UserStatus;
   partnerBankId?: string;
 }
@@ -442,3 +449,123 @@ export interface UpdateMerchantDto {
   webhookUrl?: string;
   status?: string;
 }
+
+
+export interface CreatePartnerBankFormDto {
+  name: string;
+  email: string;
+  commissionBank: string;
+  settlementBank: string;
+  commissionRatio: number;
+  headers: string[];
+  logo?: File;
+}
+
+// Settlement Types  
+export interface Settlement {
+  uuid: string;
+  frequency: SettlementFrequency;
+  surchargeOn: SurchargeType;
+  surchargeOnMerchant: number;
+  surchargeOnCustomer: number;
+  parentBank: string;
+  settlementAcct: SettlementAccount;
+  vatApplicable: boolean;
+  vatPercentage: number;
+  taxNumber?: string;
+  surchargeSum: boolean;
+  merchantId?: string;
+  status: SettlementStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type SettlementFrequency = 'DAILY' | 'WEEKLY' | 'MONTHLY';
+export type SurchargeType = 'CUSTOMER' | 'MERCHANT' | 'CUSTOMER_AND_MERCHANT' | 'PARENT';
+export type SettlementAccount = 'PARENT_BANK' | 'MERCHANT_BANK';
+export type SettlementStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING';
+
+export interface CreateSettlementDto {
+  frequency: SettlementFrequency;
+  surchargeOn: SurchargeType;
+  surchargeOnMerchant: number;
+  surchargeOnCustomer: number;
+  parentBank: string;
+  settlementAcct: SettlementAccount;
+  vatApplicable: boolean;
+  vatPercentage: number;
+  taxNumber?: string;
+  surchargeSum: boolean;
+  merchantId?: string;
+}
+
+export interface UpdateSettlementDto {
+  frequency?: SettlementFrequency;
+  surchargeOn?: SurchargeType;
+  surchargeOnMerchant?: number;
+  surchargeOnCustomer?: number;
+  parentBank?: string;
+  settlementAcct?: SettlementAccount;
+  vatApplicable?: boolean;
+  vatPercentage?: number;
+  taxNumber?: string;
+  surchargeSum?: boolean;
+  status?: SettlementStatus;
+}
+
+// Telcos Management Types
+export interface TelcoManagement {
+  uuid: string;
+  telco: Telco;
+  name: string;
+  apiUrl: string;
+  apiKey?: string;
+  secretKey?: string;
+  merchantId?: string;
+  isActive: boolean;
+  config?: Record<string, unknown>;
+  status: TelcoStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type TelcoStatus = 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE' | 'TESTING';
+
+export interface CreateTelcoManagementDto {
+  telco: Telco;
+  name: string;
+  apiUrl: string;
+  apiKey?: string;
+  secretKey?: string;
+  merchantId?: string;
+  config?: Record<string, unknown>;
+}
+
+export interface UpdateTelcoManagementDto {
+  telco?: Telco;
+  name?: string;
+  apiUrl?: string;
+  apiKey?: string;
+  secretKey?: string;
+  merchantId?: string;
+  isActive?: boolean;
+  config?: Record<string, unknown>;
+  status?: TelcoStatus;
+}
+
+// Query DTOs
+export interface QueryDto {
+  page?: number;
+  perPage?: number;
+  limit?: number;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'ASC' | 'DESC';
+  startDate?: string;
+  endDate?: string;
+  status?: string;
+  paginateData?: boolean;
+}
+
+// Account Types for Merchant Bank Details
+export type AccountType = 'CALL_ACCOUNT' | 'CURRENT_ACCOUNT' | 'SAVINGS' | 'CREDIT' | 'MB_WALLET_ACCOUNT' | 'PLS_ACCOUNT' | 'TDR_ACCOUNT';
