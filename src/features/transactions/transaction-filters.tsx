@@ -12,14 +12,14 @@ import type { TransactionFilters } from '@/sdk/types';
 import { useTransactionFilters } from './hooks';
 
 const statusOptions = [
-  { value: '', label: 'All Status' },
+  { value: 'ALL', label: 'All Status' },
   { value: 'SUCCESSFUL', label: 'Successful' },
   { value: 'PENDING', label: 'Pending' },
   { value: 'FAILED', label: 'Failed' },
 ];
 
 const processorOptions = [
-  { value: '', label: 'All Processors' },
+  { value: 'ALL', label: 'All Processors' },
   { value: 'MTN', label: 'MTN' },
   { value: 'AIRTEL', label: 'Airtel' },
   { value: 'VODAFONE', label: 'Vodafone' },
@@ -98,9 +98,12 @@ export function TransactionFilters() {
           <div className="space-y-2">
             <Label>Status</Label>
             <Select
-              value={localFilters.status || ''}
+              value={localFilters.status || 'ALL'}
               onValueChange={(value) =>
-                setLocalFilters({ ...localFilters, status: value as any })
+                setLocalFilters({ 
+                  ...localFilters, 
+                  status: value === 'ALL' ? undefined : value as any
+                })
               }
             >
               <SelectTrigger>
@@ -120,9 +123,12 @@ export function TransactionFilters() {
           <div className="space-y-2">
             <Label>Processor</Label>
             <Select
-              value={localFilters.processor || ''}
+              value={localFilters.processor || 'ALL'}
               onValueChange={(value) =>
-                setLocalFilters({ ...localFilters, processor: value as any })
+                setLocalFilters({ 
+                  ...localFilters, 
+                  processor: value === 'ALL' ? undefined : value as any 
+                })
               }
             >
               <SelectTrigger>
