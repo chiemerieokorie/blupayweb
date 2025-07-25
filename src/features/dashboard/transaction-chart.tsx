@@ -276,9 +276,9 @@ export function TransactionChart() {
                           return value
                       }
                     }}
-                    formatter={(value: number, name: string) => [
-                      formatTooltipValue(value),
-                      name === 'successful' ? 'Successful' : 'Failed'
+                    formatter={(value: unknown, name: unknown) => [
+                      formatTooltipValue(Number(value)),
+                      String(name) === 'successful' ? 'Successful' : 'Failed'
                     ]}
                     indicator="dot"
                   />

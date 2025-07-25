@@ -26,7 +26,7 @@ export function useDashboard() {
     const merchantId = user?.role === 'MERCHANT' || user?.role === 'SUB_MERCHANT' 
       ? user.merchantId 
       : undefined;
-    await refreshDashboard(merchantId);
+    await refreshDashboard({ merchantId });
   }, [refreshDashboard, user]);
 
   const updateDateRange = useCallback(

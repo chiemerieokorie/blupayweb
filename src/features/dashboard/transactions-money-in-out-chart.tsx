@@ -127,9 +127,9 @@ export function TransactionMoneyInOutChart() {
                             content={
                                 <ChartTooltipContent 
                                     hideLabel 
-                                    formatter={(value: number, name: string) => [
-                                        formatCurrency(value),
-                                        name === 'moneyIn' ? 'Money In' : 'Money Out'
+                                    formatter={(value: unknown, name: unknown) => [
+                                        formatCurrency(Number(value)),
+                                        String(name) === 'moneyIn' ? 'Money In' : 'Money Out'
                                     ]}
                                 />
                             }

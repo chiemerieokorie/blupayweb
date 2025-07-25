@@ -1,5 +1,5 @@
 import { atom } from 'jotai';
-import { TransactionAnalytics, WalletBalance, Transaction } from '@/sdk/types';
+import { TransactionAnalytics, WalletBalance, Transaction, PaginatedResponse } from '@/sdk/types';
 
 export const dashboardAnalyticsAtom = atom<TransactionAnalytics | null>(null);
 
@@ -7,20 +7,8 @@ export const walletBalanceAtom = atom<WalletBalance | null>(null);
 
 export const recentTransactionsAtom = atom<Transaction[]>([]);
 
-// New paginated transactions structure
-export interface PaginatedTransactions {
-  data: Transaction[];
-  currentPage: number;
-  lastPage: number;
-  perPage: number;
-  total: number;
-  from: number;
-  to: number;
-  nextPage: string | null;
-  prevPage: string | null;
-}
-
-export const paginatedTransactionsAtom = atom<PaginatedTransactions | null>(null);
+// Use the standard PaginatedResponse type
+export const paginatedTransactionsAtom = atom<PaginatedResponse<Transaction> | null>(null);
 export const transactionsPaginationAtom = atom({
   page: 1,
   perPage: 10,

@@ -340,7 +340,7 @@ const createColumns = (columnOrder: string[]): ColumnDef<Transaction>[] => {
       cell: ({ row }) => {
         const transaction = row.original;
         const transactionType = getTransactionType(transaction);
-        const amount = parseFloat(transaction.amount) || 0;
+        const amount = parseFloat(transaction.amount?.toString() || '0') || 0;
         
         return (
           <div>
@@ -402,8 +402,8 @@ const createColumns = (columnOrder: string[]): ColumnDef<Transaction>[] => {
         </SortableHeader>
       ),
       cell: ({ row }) => {
-        const customerSurcharge = parseFloat(row.original.surchargeOnCustomer) || 0;
-        const merchantSurcharge = parseFloat(row.original.surchargeOnMerchant) || 0;
+        const customerSurcharge = parseFloat(row.original.surchargeOnCustomer?.toString() || '0') || 0;
+        const merchantSurcharge = parseFloat(row.original.surchargeOnMerchant?.toString() || '0') || 0;
         
         return (
           <div className="text-sm">
@@ -544,6 +544,8 @@ export function TransactionsTable() {
   React.useEffect(() => {
     if (paginatedTransactions?.data) {
       setData(paginatedTransactions.data)
+    } else {
+      setData([])
     }
   }, [paginatedTransactions])
 
@@ -580,7 +582,7 @@ export function TransactionsTable() {
     getRowId: (row) => row.uuid,
     enableRowSelection: true,
     manualPagination: true, // Enable manual pagination
-    pageCount: paginatedTransactions?.lastPage || 0,
+    pageCount: paginatedTransactions?.meta?.totalPages || 1,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -633,6 +635,11 @@ export function TransactionsTable() {
       });
     };
     return <ErrorState error={error} onRetry={handleRetry} />
+  }
+
+  // Show loading state if paginatedTransactions is null (initial state)
+  if (!paginatedTransactions && !error) {
+    return <LoadingState />
   }
 
   return (
@@ -753,8 +760,8 @@ export function TransactionsTable() {
         {/* Pagination */}
         <div className="flex items-center justify-between px-4">
           <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-            {paginatedTransactions ? 
-              `Showing ${paginatedTransactions.from}-${paginatedTransactions.to} of ${paginatedTransactions.total} transactions` :
+            {paginatedTransactions?.meta ? 
+              `Showing ${((paginatedTransactions.meta.page - 1) * paginatedTransactions.meta.perPage) + 1}-${Math.min(paginatedTransactions.meta.page * paginatedTransactions.meta.perPage, paginatedTransactions.meta.total)} of ${paginatedTransactions.meta.total} transactions` :
               'No data'
             }
           </div>
@@ -785,7 +792,7 @@ export function TransactionsTable() {
               </Select>
             </div>
             <div className="flex w-fit items-center justify-center text-sm font-medium">
-              Page {pagination.page} of {paginatedTransactions?.lastPage || 1}
+              Page {pagination.page} of {paginatedTransactions?.meta?.totalPages || 1}
             </div>
             <div className="ml-auto flex items-center gap-2 lg:ml-0">
               <Button
@@ -812,7 +819,7 @@ export function TransactionsTable() {
                 className="size-8"
                 size="icon"
                 onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
-                disabled={pagination.page >= (paginatedTransactions?.lastPage || 1)}
+                disabled={pagination.page >= (paginatedTransactions?.meta?.totalPages || 1)}
               >
                 <span className="sr-only">Go to next page</span>
                 <IconChevronRight />
@@ -821,8 +828,8 @@ export function TransactionsTable() {
                 variant="outline"
                 className="hidden size-8 lg:flex"
                 size="icon"
-                onClick={() => setPagination(prev => ({ ...prev, page: paginatedTransactions?.lastPage || 1 }))}
-                disabled={pagination.page >= (paginatedTransactions?.lastPage || 1)}
+                onClick={() => setPagination(prev => ({ ...prev, page: paginatedTransactions?.meta?.totalPages || 1 }))}
+                disabled={pagination.page >= (paginatedTransactions?.meta?.totalPages || 1)}
               >
                 <span className="sr-only">Go to last page</span>
                 <IconChevronsRight />

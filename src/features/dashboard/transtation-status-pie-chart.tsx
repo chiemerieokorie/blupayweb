@@ -145,7 +145,7 @@ export function TransactionStatusPieChart() {
                             content={
                                 <ChartTooltipContent 
                                     hideLabel 
-                                    formatter={(value: number, name: string, props) => {
+                                    formatter={(value: unknown, name: unknown, props: any) => {
                                         const data = props.payload
                                         return [
                                             <>
@@ -154,7 +154,7 @@ export function TransactionStatusPieChart() {
                                                     <span className="font-medium">{data.displayName}</span>
                                                 </div>
                                                 <div className="text-sm text-muted-foreground">
-                                                    {value.toLocaleString()} transactions
+                                                    {Number(value).toLocaleString()} transactions
                                                 </div>
                                             </>,
                                             ""
