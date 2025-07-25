@@ -101,11 +101,11 @@ const getNavigationData = (user: { firstName: string; lastName: string; email: s
         //     url: ROUTES.SP_TRANSFERS.INDEX,
         //     icon: IconFileText,
         // },
-        {
-            name: "Sub-Merchants",
-            url: ROUTES.SUB_MERCHANTS.INDEX,
-            icon: IconAffiliate,
-        },
+        // {
+        //     name: "Sub-Merchants",
+        //     url: ROUTES.SUB_MERCHANTS.INDEX,
+        //     icon: IconAffiliate,
+        // },
         // {
         //     name: "API Keys",
         //     url: ROUTES.API_KEYS.INDEX,
