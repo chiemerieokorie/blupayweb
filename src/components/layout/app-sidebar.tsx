@@ -12,6 +12,11 @@ import {
     IconSettings,
     IconUsers,
     IconDeviceTabletDollar,
+    IconMoneybag,
+    IconWorldWww,
+    IconTransfer,
+    IconFileText,
+    IconPigMoney,
 } from "@tabler/icons-react"
 
 import {NavGroup} from "@/components/layout/nav-group"
@@ -29,6 +34,7 @@ import {
 } from "@/components/ui/sidebar"
 import {ROUTES} from "@/lib/constants"
 import { useAuth } from "@/features/auth/hooks";
+import {UserRoleEnum} from "@/sdk";
 
 const getNavigationData = (user: { firstName: string; lastName: string; email: string; role: string } | null) => {
     const baseNavMain = [
@@ -61,9 +67,54 @@ const getNavigationData = (user: { firstName: string; lastName: string; email: s
             icon: IconUsers,
         },
         {
+            name: "Banks",
+            url: ROUTES.BANKS.INDEX,
+            icon: IconBuildingBank,
+        },
+        {
             name: "Partner Banks",
             url: ROUTES.PARTNER_BANKS.INDEX,
             icon: IconBuildingBank,
+        },
+        {
+            name: "Devices",
+            url: ROUTES.DEVICES.INDEX,
+            icon: IconDeviceTabletDollar,
+        },
+        {
+            name: "Settlements",
+            url: ROUTES.SETTLEMENTS.INDEX,
+            icon: IconPigMoney,
+        },
+        {
+            name: "Telcos",
+            url: ROUTES.TELCOS.INDEX,
+            icon: IconWorldWww,
+        },
+        {
+            name: "Cashout",
+            url: ROUTES.CASHOUT.INDEX,
+            icon: IconMoneybag,
+        },
+        {
+            name: "Remittance",
+            url: ROUTES.REMITTANCE.INDEX,
+            icon: IconTransfer,
+        },
+        {
+            name: "SP Transfers",
+            url: ROUTES.SP_TRANSFERS.INDEX,
+            icon: IconFileText,
+        },
+        {
+            name: "Sub-Merchants",
+            url: ROUTES.SUB_MERCHANTS.INDEX,
+            icon: IconAffiliate,
+        },
+        {
+            name: "API Keys",
+            url: ROUTES.API_KEYS.INDEX,
+            icon: IconSettings,
         },
     ];
 
@@ -91,6 +142,11 @@ const getNavigationData = (user: { firstName: string; lastName: string; email: s
             url: ROUTES.DEVICES.INDEX,
             icon: IconDeviceTabletDollar,
         },
+        {
+            name: "Settlements",
+            url: ROUTES.SETTLEMENTS.INDEX,
+            icon: IconPigMoney,
+        },
     ];
 
     const pos = [
@@ -111,16 +167,17 @@ const getNavigationData = (user: { firstName: string; lastName: string; email: s
             title: "Get Help",
             url: ROUTES.HELP,
             icon: IconHelp,
+            allowedRoles: ['ADMIN', 'MERCHANT', 'PARTNER_BANK'],
         },
     ];
 
     // Role-based navigation
     let management: typeof adminManagement | typeof merchantManagement | typeof partnerBankManagement= [];
-    if (user?.role === 'ADMIN') {
+    if (user?.role === UserRoleEnum.ADMIN) {
         management = adminManagement;
-    } else if (user?.role === 'MERCHANT') {
+    } else if (user?.role === UserRoleEnum.MERCHANT) {
         management = merchantManagement;
-    } else if (user?.role === 'PARTNER_BANK') {
+    } else if (user?.role === UserRoleEnum.PARTNER_BANK) {
         management = partnerBankManagement;
     }
 
@@ -132,7 +189,8 @@ const getNavigationData = (user: { firstName: string; lastName: string; email: s
         },
         navMain: baseNavMain,
         management,
-        pos: user?.role === 'ADMIN' || user?.role === 'PARTNER_BANK' ? pos : [],
+        merchantManagement: user?.role === UserRoleEnum.ADMIN || user?.role === UserRoleEnum.PARTNER_BANK ? merchantManagement : [],
+        pos: user?.role === UserRoleEnum.ADMIN || user?.role === UserRoleEnum.PARTNER_BANK ? pos : [],
         navSecondary,
     };
 };
