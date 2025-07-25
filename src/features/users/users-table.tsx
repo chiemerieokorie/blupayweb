@@ -28,20 +28,21 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useUsers, useSelectedUser } from "./hooks";
-import { User } from "@/sdk/types";
+import {User, UserRoleEnum} from "@/sdk/types";
 import { CreateUserForm } from "./create-user-form";
 import { useToast } from "@/hooks/use-toast";
 
 interface UsersTableProps {
   onEdit?: (user: User) => void;
   onView?: (user: User) => void;
+  showCreateDialog: boolean;
+    setShowCreateDialog: (show: boolean) => void;
 }
 
-export function UsersTable({ onEdit, onView }: UsersTableProps) {
+export function UsersTable({ onEdit, onView, setShowCreateDialog, showCreateDialog }: UsersTableProps) {
   const { users, loading, deleteUser } = useUsers();
   const { selectUser } = useSelectedUser();
   const { toast } = useToast();
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const handleDelete = async (user: User) => {
     if (window.confirm(`Are you sure you want to delete user ${user.firstName} ${user.lastName}?`)) {
@@ -63,13 +64,13 @@ export function UsersTable({ onEdit, onView }: UsersTableProps) {
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
-      case "ADMIN":
+      case UserRoleEnum.ADMIN:
         return "destructive";
-      case "MERCHANT":
+      case UserRoleEnum.MERCHANT:
         return "default";
-      case "PARTNER_BANK":
+      case UserRoleEnum.PARTNER_BANK:
         return "secondary";
-      case "SUB_MERCHANT":
+      case UserRoleEnum.SUB_MERCHANT:
         return "outline";
       default:
         return "default";
@@ -98,15 +99,7 @@ export function UsersTable({ onEdit, onView }: UsersTableProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Users</h2>
-        <Button onClick={() => setShowCreateDialog(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add User
-        </Button>
-      </div>
-
+    <>
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
@@ -193,7 +186,6 @@ export function UsersTable({ onEdit, onView }: UsersTableProps) {
           </TableBody>
         </Table>
       </div>
-
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
@@ -205,6 +197,6 @@ export function UsersTable({ onEdit, onView }: UsersTableProps) {
           <CreateUserForm onSuccess={() => setShowCreateDialog(false)} />
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

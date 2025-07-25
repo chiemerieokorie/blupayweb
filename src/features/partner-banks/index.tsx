@@ -1,102 +1,56 @@
 "use client";
 
-import { useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { PartnerBanksTable } from "./partner-banks-table";
-import { PartnerBankFilters } from "./partner-bank-filters";
-import { usePartnerBanks } from "./hooks";
+import {useEffect, useState} from "react";
+import {Alert, AlertDescription} from "@/components/ui/alert";
+import {PartnerBanksTable} from "./partner-banks-table";
+import {PartnerBankFilters} from "./partner-bank-filters";
+import {usePartnerBanks} from "./hooks";
+import {PageContainer, PageHeader, BreadCrumbs, BreadcrumbPage, Actions} from '@/components/layout/page-container';
+import {Button} from "@/components/ui/button";
+import {Plus} from "lucide-react";
 
 export default function PartnerBanksPage() {
-  const { fetchPartnerBanks, total, loading, error } = usePartnerBanks();
+    const {fetchPartnerBanks, total, loading, error} = usePartnerBanks();
+    const [showCreateDialog, setShowCreateDialog] = useState(false);
 
-  useEffect(() => {
-    fetchPartnerBanks();
-  }, [fetchPartnerBanks]);
+    useEffect(() => {
+        fetchPartnerBanks();
+    }, [fetchPartnerBanks]);
 
-  if (error) {
+    if (error) {
+        return (
+            <PageContainer>
+                <PageHeader>
+                    <BreadCrumbs>
+                        <BreadcrumbPage>Partner Banks</BreadcrumbPage>
+                    </BreadCrumbs>
+                </PageHeader>
+
+                <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            </PageContainer>
+        );
+    }
+
     return (
-      <Alert variant="destructive">
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
+        <PageContainer>
+            <PageHeader>
+                <BreadCrumbs>
+                    <BreadcrumbPage>Partner Banks</BreadcrumbPage>
+                </BreadCrumbs>
+                <Actions>
+                    <Button onClick={() => setShowCreateDialog(true)}>
+                        <Plus className="h-4 w-4 mr-2"/>
+                        Add Partner Bank
+                    </Button>
+                </Actions>
+            </PageHeader>
+
+            <div className="space-y-4">
+                <PartnerBankFilters/>
+                <PartnerBanksTable setShowCreateDialog={setShowCreateDialog} showCreateDialog={showCreateDialog}/>
+            </div>
+        </PageContainer>
     );
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Partner Banks</h1>
-          <p className="text-muted-foreground">
-            Manage partner bank relationships and integrations
-          </p>
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Partner Banks</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{total}</div>
-            <p className="text-xs text-muted-foreground">
-              Registered partner banks
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Partners</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">-</div>
-            <p className="text-xs text-muted-foreground">
-              Currently active
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Countries</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">-</div>
-            <p className="text-xs text-muted-foreground">
-              Geographic presence
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Approval</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">-</div>
-            <p className="text-xs text-muted-foreground">
-              Awaiting verification
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Partner Banks</CardTitle>
-          <CardDescription>
-            A list of all partner banks and their integration status.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <PartnerBankFilters />
-            <PartnerBanksTable />
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
 }

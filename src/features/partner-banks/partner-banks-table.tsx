@@ -35,13 +35,14 @@ import { useToast } from "@/hooks/use-toast";
 interface PartnerBanksTableProps {
   onEdit?: (partnerBank: PartnerBank) => void;
   onView?: (partnerBank: PartnerBank) => void;
+  showCreateDialog: boolean;
+  setShowCreateDialog: (show: boolean) => void;
 }
 
-export function PartnerBanksTable({ onEdit, onView }: PartnerBanksTableProps) {
+export function PartnerBanksTable({ onEdit, onView, setShowCreateDialog, showCreateDialog }: PartnerBanksTableProps) {
   const { partnerBanks, loading, deletePartnerBank } = usePartnerBanks();
   const { selectPartnerBank } = useSelectedPartnerBank();
   const { toast } = useToast();
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const handleDelete = async (partnerBank: PartnerBank) => {
     if (window.confirm(`Are you sure you want to delete partner bank ${partnerBank.name}?`)) {
@@ -85,15 +86,7 @@ export function PartnerBanksTable({ onEdit, onView }: PartnerBanksTableProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Partner Banks</h2>
-        <Button onClick={() => setShowCreateDialog(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Partner Bank
-        </Button>
-      </div>
-
+    <>
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
@@ -188,6 +181,6 @@ export function PartnerBanksTable({ onEdit, onView }: PartnerBanksTableProps) {
           <CreatePartnerBankForm onSuccess={() => setShowCreateDialog(false)} />
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

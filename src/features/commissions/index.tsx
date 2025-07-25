@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {useEffect, useState} from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CommissionsTable } from "./commissions-table";
 import { useCommissions } from "./hooks";
+import { Button } from "@/components/ui/button";
+import { IconPlus } from "@tabler/icons-react"
 import {
-  BreadcrumbLink,
+  Actions,
   BreadcrumbPage,
   BreadCrumbs,
   PageContainer,
@@ -16,7 +18,7 @@ import {ROUTES} from "@/lib/constants";
 
 export default function CommissionsPage() {
   const { fetchCommissions, total, loading, error, filters } = useCommissions();
-
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   useEffect(() => {
     fetchCommissions();
   }, [fetchCommissions, filters]);
@@ -35,6 +37,12 @@ export default function CommissionsPage() {
         <BreadCrumbs>
           <BreadcrumbPage>Commissions</BreadcrumbPage>
         </BreadCrumbs>
+        <Actions>
+          <Button onClick={() => setShowCreateDialog(true)}>
+            <IconPlus className="h-4 w-4 mr-2" />
+            Add Rule
+          </Button>
+        </Actions>
       </PageHeader>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -85,17 +93,7 @@ export default function CommissionsPage() {
           </CardContent>
         </Card>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Commission Rules</CardTitle>
-          <CardDescription>
-            Manage commission structures and rates for different transaction types.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <CommissionsTable />
-        </CardContent>
-      </Card>
+      <CommissionsTable setShowCreateDialog={setShowCreateDialog} showCreateDialog={showCreateDialog} />
     </PageContainer>
   );
 }

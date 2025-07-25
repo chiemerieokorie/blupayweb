@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import { PageContainer } from '@/components/layout/page-container';
 import UsersPage from '@/features/users';
 
 export const metadata: Metadata = {
