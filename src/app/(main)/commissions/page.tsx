@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import { PageContainer } from '@/components/layout/page-container';
 import CommissionsPage from '@/features/commissions';
 
 export const metadata: Metadata = {
@@ -9,8 +8,6 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <PageContainer>
       <CommissionsPage />
-    </PageContainer>
   );
 }

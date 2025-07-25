@@ -5,6 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CommissionsTable } from "./commissions-table";
 import { useCommissions } from "./hooks";
+import {
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadCrumbs,
+  PageContainer,
+  PageHeader
+} from '@/components/layout/page-container';
+import {ROUTES} from "@/lib/constants";
 
 export default function CommissionsPage() {
   const { fetchCommissions, total, loading, error, filters } = useCommissions();
@@ -22,16 +30,12 @@ export default function CommissionsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Commission Management</h1>
-          <p className="text-muted-foreground">
-            Configure and manage commission structures for transactions
-          </p>
-        </div>
-      </div>
-
+    <PageContainer>
+      <PageHeader>
+        <BreadCrumbs>
+          <BreadcrumbPage>Commissions</BreadcrumbPage>
+        </BreadCrumbs>
+      </PageHeader>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -81,7 +85,6 @@ export default function CommissionsPage() {
           </CardContent>
         </Card>
       </div>
-
       <Card>
         <CardHeader>
           <CardTitle>Commission Rules</CardTitle>
@@ -93,6 +96,6 @@ export default function CommissionsPage() {
           <CommissionsTable />
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
