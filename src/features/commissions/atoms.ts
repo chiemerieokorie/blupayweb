@@ -40,7 +40,7 @@ export const fetchCommissionsAtom = atom(
       const { commissionService } = await import('@/sdk/commissions');
       const filters = get(commissionsFiltersAtom);
       
-      const response = await commissionService.getCommissions(filters);
+      const response = await commissionService.getCommissions(filters as Record<string, unknown>);
       set(commissionsAtom, response);
       
       return response;
