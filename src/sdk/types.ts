@@ -257,6 +257,24 @@ export interface TransactionRequest {
   customerEmail?: string;
 }
 
+// Extended Transaction Creation DTO (used by forms)
+export interface CreateTransactionDto {
+  merchantId: string;
+  processor: Telco;
+  type: 'MOBILE_MONEY' | 'CARD';
+  surchargeOn: 'CUSTOMER' | 'MERCHANT' | 'CUSTOMER_AND_MERCHANT' | 'PARENT';
+  amount: number;
+  customer: {
+    name: string;
+    email?: string;
+    mobileNumber: string;
+    amount: number;
+  };
+  currency: string;
+  transactionRef: string;
+  description: string;
+}
+
 export interface TransactionAnalytics {
   totalTransactions: number;
   totalAmount: number;
@@ -338,16 +356,9 @@ export interface UpdateCommissionDto {
   description?: string;
 }
 
-// Device Types (extended)
+// Device Types (matching API)
 export interface CreateDeviceDto {
-  serialNumber: string;
-  deviceType: DeviceType;
-  model: string;
-  manufacturer: string;
-  location?: string;
-  partnerBankId?: string;
-  merchantId?: string;
-  description?: string;
+  deviceId: string;
 }
 
 export interface UpdateDeviceDto {
@@ -451,6 +462,7 @@ export interface UpdateMerchantDto {
 }
 
 
+// Extended Partner Bank Form DTO (used by forms with additional fields)
 export interface CreatePartnerBankFormDto {
   name: string;
   email: string;
@@ -569,3 +581,52 @@ export interface QueryDto {
 
 // Account Types for Merchant Bank Details
 export type AccountType = 'CALL_ACCOUNT' | 'CURRENT_ACCOUNT' | 'SAVINGS' | 'CREDIT' | 'MB_WALLET_ACCOUNT' | 'PLS_ACCOUNT' | 'TDR_ACCOUNT';
+
+// Extended Merchant Creation DTO (used by forms that create merchant with settlement, user, and bank details)
+export interface ExtendedCreateMerchantDto {
+  merchantType: 'parent' | 'sub-merchant';
+  parent?: string;
+  merchantDetails: {
+    merchantName: string;
+    merchantNameSlug?: string;
+    merchantCode: string;
+    merchantCategory: number;
+    orgType: number;
+    terminal: string;
+    merchantKey: string;
+    merchantToken: string;
+    notificationEmail: string;
+    country: string;
+    address?: string;
+    canProcessCardTransactions: boolean;
+    canProcessMomoTransactions: boolean;
+  };
+  settlementDetails: {
+    frequency: SettlementFrequency;
+    surchargeOn: SurchargeType;
+    surchargeOnMerchant: number;
+    surchargeOnCustomer: number;
+    parentBank: string;
+    settlementAcct: SettlementAccount;
+    vatApplicable: boolean;
+    vatPercentage: number;
+    taxNumber: string;
+    surchargeSum: boolean;
+  };
+  userDetails: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    phoneNumber?: string;
+    role: 'merchant';
+    profileImage?: string;
+  };
+  bankDetails: {
+    bankId: string;
+    branch: string;
+    accountName: string;
+    accountNumber: string;
+    accountType: AccountType;
+  };
+}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -14,26 +14,37 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Plus, CreditCard, Smartphone } from 'lucide-react';
 import { useCreateTransaction } from './hooks';
-import { Telco } from '@/sdk/types';
+import { CreateTransactionDto } from '@/sdk/types';
 
 const createTransactionSchema = z.object({
-  amount: z.number().min(1, 'Amount must be greater than 0'),
-  phoneNumber: z.string().min(10, 'Please enter a valid phone number'),
-  processor: z.enum(['MTN', 'AIRTEL', 'VODAFONE', 'TIGO', 'ORANGE']),
-  customerName: z.string().min(2, 'Customer name is required'),
+  merchantId: z.string().uuid('Merchant ID must be a valid UUID'),
+  processor: z.enum(['MTN', 'AIRTEL', 'TIGO', 'VODAFONE', 'ORANGE']),
+  surchargeOn: z.enum(['CUSTOMER', 'MERCHANT', 'CUSTOMER_AND_MERCHANT', 'PARENT']),
+  amount: z.number().min(0.01, 'Amount must be greater than 0'),
+  customerName: z.string().min(1, 'Customer name is required'),
   customerEmail: z.string().email('Please enter a valid email').optional().or(z.literal('')),
-  description: z.string().optional(),
-  type: z.enum(['momo', 'card']),
+  customerPhone: z.string().min(10, 'Please enter a valid phone number'),
+  currency: z.string().default('GHS'),
+  transactionRef: z.string().min(1, 'Transaction reference is required'),
+  description: z.string().min(1, 'Description is required'),
+  type: z.enum(['MOBILE_MONEY', 'CARD']),
 });
 
 type CreateTransactionFormData = z.infer<typeof createTransactionSchema>;
 
 const processorOptions = [
-  { value: 'MTN' as Telco, label: 'MTN Mobile Money', color: 'bg-yellow-500' },
-  { value: 'AIRTEL' as Telco, label: 'Airtel Money', color: 'bg-red-500' },
-  { value: 'VODAFONE' as Telco, label: 'Vodafone Cash', color: 'bg-red-600' },
-  { value: 'TIGO' as Telco, label: 'Tigo Cash', color: 'bg-blue-500' },
-  { value: 'ORANGE' as Telco, label: 'Orange Money', color: 'bg-orange-500' },
+  { value: 'MTN' as const, label: 'MTN Mobile Money', color: 'bg-yellow-500' },
+  { value: 'AIRTEL' as const, label: 'Airtel Money', color: 'bg-red-500' },
+  { value: 'TIGO' as const, label: 'Tigo Cash', color: 'bg-blue-500' },
+  { value: 'VODAFONE' as const, label: 'Vodafone Cash', color: 'bg-purple-500' },
+  { value: 'ORANGE' as const, label: 'Orange Money', color: 'bg-orange-500' },
+];
+
+const surchargeOptions = [
+  { value: 'CUSTOMER', label: 'Customer' },
+  { value: 'MERCHANT', label: 'Merchant' },
+  { value: 'CUSTOMER_AND_MERCHANT', label: 'Customer and Merchant' },
+  { value: 'PARENT', label: 'Parent' },
 ];
 
 interface CreateTransactionFormProps {
@@ -43,41 +54,54 @@ interface CreateTransactionFormProps {
 
 export function CreateTransactionForm({ onSuccess, onCancel }: CreateTransactionFormProps) {
   const { create, loading, error } = useCreateTransaction();
-  const [transactionType, setTransactionType] = useState<'momo' | 'card'>('momo');
+  const [transactionType, setTransactionType] = useState<'MOBILE_MONEY' | 'CARD'>('MOBILE_MONEY');
 
   const form = useForm<CreateTransactionFormData>({
     resolver: zodResolver(createTransactionSchema),
     defaultValues: {
-      amount: 0,
-      phoneNumber: '',
+      merchantId: '',
       processor: 'MTN',
+      surchargeOn: 'CUSTOMER',
+      amount: 0,
       customerName: '',
       customerEmail: '',
+      customerPhone: '',
+      currency: 'GHS',
+      transactionRef: `TXN${Date.now()}`,
       description: '',
-      type: 'momo',
+      type: 'MOBILE_MONEY',
     },
   });
 
+  // Generate a new transaction reference when form loads
+  React.useEffect(() => {
+    form.setValue('transactionRef', `TXN${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+  }, [form]);
+
   const onSubmit = async (data: CreateTransactionFormData) => {
     try {
-      const transactionData = {
-        amount: data.amount,
-        phoneNumber: data.phoneNumber,
+      const transactionData: CreateTransactionDto = {
+        merchantId: data.merchantId,
         processor: data.processor,
-        customerName: data.customerName,
-        customerEmail: data.customerEmail || undefined,
-        description: data.description || undefined,
+        type: data.type,
+        surchargeOn: data.surchargeOn,
+        amount: data.amount,
+        customer: {
+          name: data.customerName,
+          email: data.customerEmail || undefined,
+          mobileNumber: data.customerPhone,
+          amount: data.amount,
+        },
+        currency: data.currency,
+        transactionRef: data.transactionRef,
+        description: data.description,
       };
 
-      if (data.type === 'card') {
-        // Use card transaction endpoint
-        // await createCardTransaction(transactionData);
-      } else {
-        await create(transactionData);
-      }
-
+      await create(transactionData);
       onSuccess?.();
       form.reset();
+      // Generate new transaction ref for next transaction
+      form.setValue('transactionRef', `TXN${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
     } catch (error) {
       console.error('Transaction creation failed:', error);
     }
@@ -108,11 +132,11 @@ export function CreateTransactionForm({ onSuccess, onCancel }: CreateTransaction
             <div className="grid grid-cols-2 gap-3">
               <Button
                 type="button"
-                variant={transactionType === 'momo' ? 'default' : 'outline'}
+                variant={transactionType === 'MOBILE_MONEY' ? 'default' : 'outline'}
                 className="h-16 flex-col space-y-2"
                 onClick={() => {
-                  setTransactionType('momo');
-                  form.setValue('type', 'momo');
+                  setTransactionType('MOBILE_MONEY');
+                  form.setValue('type', 'MOBILE_MONEY');
                 }}
               >
                 <Smartphone className="h-6 w-6" />
@@ -120,11 +144,11 @@ export function CreateTransactionForm({ onSuccess, onCancel }: CreateTransaction
               </Button>
               <Button
                 type="button"
-                variant={transactionType === 'card' ? 'default' : 'outline'}
+                variant={transactionType === 'CARD' ? 'default' : 'outline'}
                 className="h-16 flex-col space-y-2"
                 onClick={() => {
-                  setTransactionType('card');
-                  form.setValue('type', 'card');
+                  setTransactionType('CARD');
+                  form.setValue('type', 'CARD');
                 }}
               >
                 <CreditCard className="h-6 w-6" />
@@ -133,20 +157,73 @@ export function CreateTransactionForm({ onSuccess, onCancel }: CreateTransaction
             </div>
           </div>
 
-          {/* Amount */}
-          <div className="space-y-2">
-            <Label htmlFor="amount">Amount (GHS)</Label>
-            <Input
-              id="amount"
-              type="number"
-              step="0.01"
-              placeholder="0.00"
-              {...form.register('amount', { valueAsNumber: true })}
-              disabled={loading}
-            />
-            {form.formState.errors.amount && (
-              <p className="text-sm text-red-500">{form.formState.errors.amount.message}</p>
-            )}
+          {/* Merchant ID and Surcharge */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="merchantId">Merchant ID</Label>
+              <Input
+                id="merchantId"
+                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                {...form.register('merchantId')}
+                disabled={loading}
+              />
+              {form.formState.errors.merchantId && (
+                <p className="text-sm text-red-500">{form.formState.errors.merchantId.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Surcharge On</Label>
+              <Select
+                onValueChange={(value) => form.setValue('surchargeOn', value as any)}
+                defaultValue="CUSTOMER"
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select surcharge target" />
+                </SelectTrigger>
+                <SelectContent>
+                  {surchargeOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {form.formState.errors.surchargeOn && (
+                <p className="text-sm text-red-500">{form.formState.errors.surchargeOn.message}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Amount and Transaction Ref */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="amount">Amount (GHS)</Label>
+              <Input
+                id="amount"
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                {...form.register('amount', { valueAsNumber: true })}
+                disabled={loading}
+              />
+              {form.formState.errors.amount && (
+                <p className="text-sm text-red-500">{form.formState.errors.amount.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="transactionRef">Transaction Reference</Label>
+              <Input
+                id="transactionRef"
+                placeholder="TXN123456789"
+                {...form.register('transactionRef')}
+                disabled={loading}
+              />
+              {form.formState.errors.transactionRef && (
+                <p className="text-sm text-red-500">{form.formState.errors.transactionRef.message}</p>
+              )}
+            </div>
           </div>
 
           {/* Customer Information */}
@@ -165,15 +242,15 @@ export function CreateTransactionForm({ onSuccess, onCancel }: CreateTransaction
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phoneNumber">Phone Number</Label>
+              <Label htmlFor="customerPhone">Phone Number</Label>
               <Input
-                id="phoneNumber"
-                placeholder="0241234567"
-                {...form.register('phoneNumber')}
+                id="customerPhone"
+                placeholder="+233241234567"
+                {...form.register('customerPhone')}
                 disabled={loading}
               />
-              {form.formState.errors.phoneNumber && (
-                <p className="text-sm text-red-500">{form.formState.errors.phoneNumber.message}</p>
+              {form.formState.errors.customerPhone && (
+                <p className="text-sm text-red-500">{form.formState.errors.customerPhone.message}</p>
               )}
             </div>
           </div>
@@ -193,11 +270,11 @@ export function CreateTransactionForm({ onSuccess, onCancel }: CreateTransaction
           </div>
 
           {/* Processor Selection (for mobile money) */}
-          {transactionType === 'momo' && (
+          {transactionType === 'MOBILE_MONEY' && (
             <div className="space-y-2">
               <Label>Mobile Money Provider</Label>
               <Select
-                onValueChange={(value) => form.setValue('processor', value as Telco)}
+                onValueChange={(value) => form.setValue('processor', value as any)}
                 defaultValue="MTN"
               >
                 <SelectTrigger>
@@ -219,7 +296,7 @@ export function CreateTransactionForm({ onSuccess, onCancel }: CreateTransaction
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">Description (Optional)</Label>
+            <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
               placeholder="Payment description..."
@@ -227,6 +304,9 @@ export function CreateTransactionForm({ onSuccess, onCancel }: CreateTransaction
               disabled={loading}
               rows={3}
             />
+            {form.formState.errors.description && (
+              <p className="text-sm text-red-500">{form.formState.errors.description.message}</p>
+            )}
           </div>
 
           {/* Transaction Summary */}
@@ -236,7 +316,7 @@ export function CreateTransactionForm({ onSuccess, onCancel }: CreateTransaction
                 <div className="flex justify-between">
                   <span>Transaction Type:</span>
                   <Badge variant="outline">
-                    {transactionType === 'momo' ? 'Mobile Money' : 'Card Payment'}
+                    {transactionType === 'MOBILE_MONEY' ? 'Mobile Money' : 'Card Payment'}
                   </Badge>
                 </div>
                 <div className="flex justify-between">
@@ -245,12 +325,20 @@ export function CreateTransactionForm({ onSuccess, onCancel }: CreateTransaction
                     GHS {form.watch('amount')?.toFixed(2) || '0.00'}
                   </span>
                 </div>
-                {transactionType === 'momo' && (
+                {transactionType === 'MOBILE_MONEY' && (
                   <div className="flex justify-between">
                     <span>Provider:</span>
                     <span className="font-medium">{form.watch('processor')}</span>
                   </div>
                 )}
+                <div className="flex justify-between">
+                  <span>Surcharge On:</span>
+                  <span className="font-medium">{form.watch('surchargeOn')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Reference:</span>
+                  <span className="font-medium text-xs">{form.watch('transactionRef')}</span>
+                </div>
               </div>
             </CardContent>
           </Card>

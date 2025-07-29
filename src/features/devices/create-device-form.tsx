@@ -24,19 +24,16 @@ import {
 } from "@/components/ui/select";
 import { useDevices } from "./hooks";
 import { useToast } from "@/hooks/use-toast";
+import { CreateDeviceDto } from "@/sdk/types";
 
 const createDeviceSchema = z.object({
-  serialNumber: z.string().min(1, "Serial number is required"),
-  deviceType: z.enum(["POS", "ATM", "MOBILE"]),
-  model: z.string().min(1, "Model is required"),
-  manufacturer: z.string().min(1, "Manufacturer is required"),
-  location: z.string().optional(),
-  partnerBankId: z.string().optional(),
-  merchantId: z.string().optional(),
-  description: z.string().optional(),
+  deviceId: z.string().min(1, "Device ID is required"),
 });
 
 type CreateDeviceFormData = z.infer<typeof createDeviceSchema>;
+
+// Ensure the form data structure matches the DTO
+const _typeCheck: CreateDeviceFormData extends CreateDeviceDto ? true : false = true;
 
 interface CreateDeviceFormProps {
   onSuccess?: () => void;
@@ -50,40 +47,15 @@ export function CreateDeviceForm({ onSuccess }: CreateDeviceFormProps) {
   const form = useForm<CreateDeviceFormData>({
     resolver: zodResolver(createDeviceSchema),
     defaultValues: {
-      serialNumber: "",
-      deviceType: "POS",
-      model: "",
-      manufacturer: "",
-      location: "",
-      partnerBankId: "",
-      merchantId: "",
-      description: "",
+      deviceId: "",
     },
   });
 
   const onSubmit = async (data: CreateDeviceFormData) => {
     try {
       setIsSubmitting(true);
-      
-      const deviceData = { ...data };
-      
-      if (!deviceData.location) {
-        delete deviceData.location;
-      }
-      
-      if (!deviceData.partnerBankId) {
-        delete deviceData.partnerBankId;
-      }
-      
-      if (!deviceData.merchantId) {
-        delete deviceData.merchantId;
-      }
-      
-      if (!deviceData.description) {
-        delete deviceData.description;
-      }
 
-      await createDevice(deviceData);
+      await createDevice(data);
       
       toast({
         title: "Success",
@@ -106,130 +78,19 @@ export function CreateDeviceForm({ onSuccess }: CreateDeviceFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="serialNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Serial Number</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter serial number" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="deviceType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Device Type</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select device type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="POS">POS Terminal</SelectItem>
-                    <SelectItem value="ATM">ATM</SelectItem>
-                    <SelectItem value="MOBILE">Mobile Device</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="model"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Model</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter device model" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="manufacturer"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Manufacturer</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter manufacturer" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="partnerBankId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Partner Bank ID (Optional)</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter partner bank ID" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="merchantId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Merchant ID (Optional)</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter merchant ID" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
         <FormField
           control={form.control}
-          name="location"
+          name="deviceId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Location (Optional)</FormLabel>
+              <FormLabel>Device ID</FormLabel>
               <FormControl>
-                <Input placeholder="Enter device location" {...field} />
+                <Input placeholder="Enter device ID (e.g., POS001234)" {...field} />
               </FormControl>
               <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description (Optional)</FormLabel>
-              <FormControl>
-                <Textarea 
-                  placeholder="Enter device description"
-                  className="resize-none"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
+              <div className="text-sm text-gray-500">
+                This should be the unique identifier for the device
+              </div>
             </FormItem>
           )}
         />
@@ -241,6 +102,14 @@ export function CreateDeviceForm({ onSuccess }: CreateDeviceFormProps) {
           <Button type="submit" disabled={isSubmitting || loading}>
             {isSubmitting ? "Creating..." : "Create Device"}
           </Button>
+        </div>
+        
+        <div className="bg-blue-50 p-4 rounded-lg">
+          <h4 className="font-medium text-blue-900 mb-2">Note:</h4>
+          <p className="text-sm text-blue-800">
+            According to the API specification, only the Device ID is required to create a device. 
+            Additional device details like status and assignment can be updated later using the device management endpoints.
+          </p>
         </div>
       </form>
     </Form>

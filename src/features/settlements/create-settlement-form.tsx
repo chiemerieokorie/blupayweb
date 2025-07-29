@@ -24,22 +24,25 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useSettlements } from "./hooks";
 import { useToast } from "@/hooks/use-toast";
+import { CreateSettlementDto } from "@/sdk/types";
 
 const createSettlementSchema = z.object({
   frequency: z.enum(["DAILY", "WEEKLY", "MONTHLY"]),
   surchargeOn: z.enum(["CUSTOMER", "MERCHANT", "CUSTOMER_AND_MERCHANT", "PARENT"]),
-  surchargeOnMerchant: z.number().min(0).max(100),
-  surchargeOnCustomer: z.number().min(0).max(100), 
-  parentBank: z.string().min(1, "Parent bank is required"),
+  surchargeOnMerchant: z.number().min(0).max(1.5),
+  surchargeOnCustomer: z.number().min(0).max(1.5), 
+  parentBank: z.string().uuid("Parent bank must be a valid UUID"),
   settlementAcct: z.enum(["PARENT_BANK", "MERCHANT_BANK"]),
   vatApplicable: z.boolean(),
   vatPercentage: z.number().min(0).max(100),
-  taxNumber: z.string().optional(),
+  taxNumber: z.string().min(11, "Tax number must be 11-15 characters").max(15, "Tax number must be 11-15 characters"),
   surchargeSum: z.boolean(),
-  merchantId: z.string().optional(),
 });
 
 type CreateSettlementFormData = z.infer<typeof createSettlementSchema>;
+
+// Ensure form data structure is compatible with DTO
+// Note: Form has additional fields that aren't in CreateSettlementDto, so we check the key fields
 
 interface CreateSettlementFormProps {
   onSuccess?: () => void;
@@ -63,17 +66,25 @@ export function CreateSettlementForm({ onSuccess }: CreateSettlementFormProps) {
       vatPercentage: 0,
       taxNumber: "",
       surchargeSum: false,
-      merchantId: "",
     },
   });
 
   const onSubmit = async (data: CreateSettlementFormData) => {
     try {
       setIsSubmitting(true);
-      
-      const settlementData = { ...data };
-      if (!settlementData.taxNumber) delete settlementData.taxNumber;
-      if (!settlementData.merchantId) delete settlementData.merchantId;
+
+      const settlementData: CreateSettlementDto = {
+        frequency: data.frequency as any,
+        surchargeOn: data.surchargeOn as any,
+        surchargeOnMerchant: data.surchargeOnMerchant,
+        surchargeOnCustomer: data.surchargeOnCustomer,
+        parentBank: data.parentBank,
+        settlementAcct: data.settlementAcct as any,
+        vatApplicable: data.vatApplicable,
+        vatPercentage: data.vatPercentage,
+        taxNumber: data.taxNumber,
+        surchargeSum: data.surchargeSum,
+      };
 
       await createSettlement(settlementData);
       
@@ -158,7 +169,7 @@ export function CreateSettlementForm({ onSuccess }: CreateSettlementFormProps) {
                     type="number" 
                     step="0.01"
                     min="0"
-                    max="100"
+                    max="1.5"
                     placeholder="0.00" 
                     {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
@@ -179,7 +190,7 @@ export function CreateSettlementForm({ onSuccess }: CreateSettlementFormProps) {
                     type="number" 
                     step="0.01"
                     min="0"
-                    max="100"
+                    max="1.5"
                     placeholder="0.00" 
                     {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}

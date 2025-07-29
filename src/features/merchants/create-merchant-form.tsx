@@ -11,53 +11,110 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
-import { Plus, Building2 } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 import { useCreateMerchant } from './hooks';
-import { CreateMerchantDto } from '@/sdk/types';
+import { ExtendedCreateMerchantDto } from '@/sdk/types';
 
 const createMerchantSchema = z.object({
+  // Merchant Type
+  merchantType: z.enum(['parent', 'sub-merchant']),
+  parent: z.string().uuid().optional(),
+  
+  // Merchant Details
   merchantName: z.string().min(2, 'Merchant name must be at least 2 characters'),
-  merchantCategoryCode: z.string().min(1, 'Category code is required'),
+  merchantNameSlug: z.string().optional(),
+  merchantCode: z.string().min(1, 'Merchant code is required'),
+  merchantCategory: z.number().min(1, 'Category is required'),
+  orgType: z.number().min(1, 'Organization type is required'),
+  terminal: z.string().uuid('Terminal must be a valid UUID'),
+  merchantKey: z.string().min(1, 'Merchant key is required'),
+  merchantToken: z.string().min(1, 'Merchant token is required'),
   notificationEmail: z.string().email('Please enter a valid email address'),
-  country: z.string().min(1, 'Country is required'),
-  canProcessCardTransactions: z.boolean().optional(),
-  canProcessMomoTransactions: z.boolean().optional(),
+  country: z.enum(['GHANA']),
+  address: z.string().optional(),
+  canProcessCardTransactions: z.boolean().default(false),
+  canProcessMomoTransactions: z.boolean().default(true),
   
   // Settlement Details
-  settlementBankName: z.string().min(1, 'Settlement bank name is required'),
-  settlementAccountNumber: z.string().min(1, 'Settlement account number is required'),
-  settlementAccountName: z.string().min(1, 'Settlement account name is required'),
-  settlementSortCode: z.string().optional(),
+  settlementFrequency: z.enum(['DAILY', 'WEEKLY', 'MONTHLY']),
+  surchargeOn: z.enum(['CUSTOMER', 'MERCHANT', 'CUSTOMER_AND_MERCHANT', 'PARENT']),
+  surchargeOnMerchant: z.number().min(0).max(1.5).default(0),
+  surchargeOnCustomer: z.number().min(0).max(1.5).default(0),
+  parentBank: z.string().uuid('Parent bank must be a valid UUID'),
+  settlementAcct: z.enum(['PARENT_BANK', 'MERCHANT_BANK']),
+  vatApplicable: z.boolean().default(false),
+  vatPercentage: z.number().min(0).max(100).default(0),
+  taxNumber: z.string().min(11).max(15),
+  surchargeSum: z.boolean().default(false),
+  
+  // User Details
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  phoneNumber: z.string().optional(),
+  role: z.enum(['merchant']).default('merchant'),
+  profileImage: z.string().optional(),
   
   // Bank Details
-  bankName: z.string().min(1, 'Bank name is required'),
-  accountNumber: z.string().min(1, 'Account number is required'),
+  bankId: z.string().uuid('Bank ID must be a valid UUID'),
+  branch: z.string().uuid('Branch must be a valid UUID'),
   accountName: z.string().min(1, 'Account name is required'),
-  sortCode: z.string().optional(),
-  
-  // Optional fields
-  partnerBankId: z.string().optional(),
-  webhookUrl: z.string().optional(),
+  accountNumber: z.string().min(1, 'Account number is required'),
+  accountType: z.enum(['CALL_ACCOUNT', 'CURRENT_ACCOUNT', 'SAVINGS', 'CREDIT', 'MB_WALLET_ACCOUNT', 'PLS_ACCOUNT', 'TDR_ACCOUNT']),
 });
 
-type CreateMerchantFormData = CreateMerchantDto;
+type CreateMerchantFormData = z.infer<typeof createMerchantSchema>;
 
 const countries = [
-  { value: 'GH', label: 'Ghana' },
-  { value: 'NG', label: 'Nigeria' },
-  { value: 'KE', label: 'Kenya' },
-  { value: 'UG', label: 'Uganda' },
+  { value: 'GHANA', label: 'Ghana' },
+];
+
+const organizationTypes = [
+  { value: 1, label: 'Private Limited Company' },
+  { value: 2, label: 'Public Limited Company' },
+  { value: 3, label: 'Partnership' },
+  { value: 4, label: 'Sole Proprietorship' },
+  { value: 5, label: 'NGO/Non-Profit' },
+];
+
+const accountTypes = [
+  { value: 'CURRENT_ACCOUNT', label: 'Current Account' },
+  { value: 'SAVINGS', label: 'Savings Account' },
+  { value: 'CALL_ACCOUNT', label: 'Call Account' },
+  { value: 'CREDIT', label: 'Credit Account' },
+  { value: 'MB_WALLET_ACCOUNT', label: 'Mobile Wallet Account' },
+  { value: 'PLS_ACCOUNT', label: 'PLS Account' },
+  { value: 'TDR_ACCOUNT', label: 'TDR Account' },
+];
+
+const settlementFrequencies = [
+  { value: 'DAILY', label: 'Daily' },
+  { value: 'WEEKLY', label: 'Weekly' },
+  { value: 'MONTHLY', label: 'Monthly' },
+];
+
+const surchargeOptions = [
+  { value: 'CUSTOMER', label: 'Customer' },
+  { value: 'MERCHANT', label: 'Merchant' },
+  { value: 'CUSTOMER_AND_MERCHANT', label: 'Customer and Merchant' },
+  { value: 'PARENT', label: 'Parent' },
+];
+
+const settlementAccountTypes = [
+  { value: 'PARENT_BANK', label: 'Parent Bank' },
+  { value: 'MERCHANT_BANK', label: 'Merchant Bank' },
 ];
 
 const merchantCategories = [
-  { value: 'RETAIL', label: 'Retail' },
-  { value: 'ECOMMERCE', label: 'E-commerce' },
-  { value: 'FINTECH', label: 'Fintech' },
-  { value: 'EDUCATION', label: 'Education' },
-  { value: 'HEALTHCARE', label: 'Healthcare' },
-  { value: 'TRANSPORT', label: 'Transport' },
-  { value: 'UTILITIES', label: 'Utilities' },
-  { value: 'OTHER', label: 'Other' },
+  { value: 5411, label: 'Grocery Stores, Supermarkets' },
+  { value: 5812, label: 'Eating Places, Restaurants' },
+  { value: 5999, label: 'Miscellaneous Retail' },
+  { value: 6011, label: 'Financial Institutions' },
+  { value: 7372, label: 'Computer Programming Services' },
+  { value: 8220, label: 'Colleges, Universities' },
+  { value: 8062, label: 'Hospitals' },
+  { value: 4121, label: 'Taxicabs and Limousines' },
 ];
 
 interface CreateMerchantFormProps {
@@ -68,31 +125,101 @@ interface CreateMerchantFormProps {
 export function CreateMerchantForm({ onSuccess, onCancel }: CreateMerchantFormProps) {
   const { create, loading, error } = useCreateMerchant();
 
-  const form = useForm<CreateMerchantFormData>({
+  const form = useForm({
     resolver: zodResolver(createMerchantSchema),
     defaultValues: {
+      merchantType: 'parent',
+      parent: undefined,
       merchantName: '',
-      merchantCategoryCode: '',
+      merchantNameSlug: '',
+      merchantCode: '',
+      merchantCategory: 5411,
+      orgType: 1,
+      terminal: '',
+      merchantKey: '',
+      merchantToken: '',
       notificationEmail: '',
-      country: '',
-      canProcessCardTransactions: true,
+      country: 'GHANA',
+      address: '',
+      canProcessCardTransactions: false,
       canProcessMomoTransactions: true,
-      settlementBankName: '',
-      settlementAccountNumber: '',
-      settlementAccountName: '',
-      settlementSortCode: undefined,
-      bankName: '',
-      accountNumber: '',
+      settlementFrequency: 'MONTHLY',
+      surchargeOn: 'CUSTOMER',
+      surchargeOnMerchant: 0,
+      surchargeOnCustomer: 0,
+      parentBank: '',
+      settlementAcct: 'PARENT_BANK',
+      vatApplicable: false,
+      vatPercentage: 0,
+      taxNumber: '',
+      surchargeSum: false,
+      firstName: '',
+      lastName: '',
+      email: '',
+      password: '',
+      phoneNumber: '',
+      role: 'merchant',
+      profileImage: '',
+      bankId: '',
+      branch: '',
       accountName: '',
-      sortCode: undefined,
-      partnerBankId: undefined,
-      webhookUrl: undefined,
+      accountNumber: '',
+      accountType: 'CURRENT_ACCOUNT',
     },
   });
 
   const onSubmit = async (data: CreateMerchantFormData) => {
     try {
-      await create(data);
+      // Transform form data to match API structure
+      const merchantData: ExtendedCreateMerchantDto = {
+        merchantType: data.merchantType,
+        parent: data.parent || undefined,
+        merchantDetails: {
+          merchantName: data.merchantName,
+          merchantNameSlug: data.merchantNameSlug || data.merchantName.toLowerCase().replace(/\s+/g, '-'),
+          merchantCode: data.merchantCode,
+          merchantCategory: data.merchantCategory,
+          orgType: data.orgType,
+          terminal: data.terminal,
+          merchantKey: data.merchantKey,
+          merchantToken: data.merchantToken,
+          notificationEmail: data.notificationEmail,
+          country: data.country,
+          address: data.address,
+          canProcessCardTransactions: data.canProcessCardTransactions,
+          canProcessMomoTransactions: data.canProcessMomoTransactions,
+        },
+        settlementDetails: {
+          frequency: data.settlementFrequency,
+          surchargeOn: data.surchargeOn,
+          surchargeOnMerchant: data.surchargeOnMerchant,
+          surchargeOnCustomer: data.surchargeOnCustomer,
+          parentBank: data.parentBank,
+          settlementAcct: data.settlementAcct,
+          vatApplicable: data.vatApplicable,
+          vatPercentage: data.vatPercentage,
+          taxNumber: data.taxNumber,
+          surchargeSum: data.surchargeSum,
+        },
+        userDetails: {
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+          password: data.password,
+          phoneNumber: data.phoneNumber,
+          role: data.role,
+          profileImage: data.profileImage,
+        },
+        bankDetails: {
+          bankId: data.bankId,
+          branch: data.branch,
+          accountName: data.accountName,
+          accountNumber: data.accountNumber,
+          accountType: data.accountType,
+        },
+      };
+
+      await create(merchantData);
       onSuccess?.();
       form.reset();
     } catch (error) {
@@ -138,6 +265,21 @@ export function CreateMerchantForm({ onSuccess, onCancel }: CreateMerchantFormPr
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="merchantCode">Merchant Code</Label>
+                <Input
+                  id="merchantCode"
+                  placeholder="BP001"
+                  {...form.register('merchantCode')}
+                  disabled={loading}
+                />
+                {form.formState.errors.merchantCode && (
+                  <p className="text-sm text-red-500">{form.formState.errors.merchantCode.message}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
                 <Label htmlFor="notificationEmail">Notification Email</Label>
                 <Input
                   id="notificationEmail"
@@ -150,13 +292,12 @@ export function CreateMerchantForm({ onSuccess, onCancel }: CreateMerchantFormPr
                   <p className="text-sm text-red-500">{form.formState.errors.notificationEmail.message}</p>
                 )}
               </div>
-            </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label>Country</Label>
                 <Select
-                  onValueChange={(value) => form.setValue('country', value)}
+                  onValueChange={(value) => form.setValue('country', value as 'GHANA')}
+                  defaultValue="GHANA"
                   disabled={loading}
                 >
                   <SelectTrigger>
@@ -174,11 +315,13 @@ export function CreateMerchantForm({ onSuccess, onCancel }: CreateMerchantFormPr
                   <p className="text-sm text-red-500">{form.formState.errors.country.message}</p>
                 )}
               </div>
+            </div>
 
+            <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label>Merchant Category</Label>
                 <Select
-                  onValueChange={(value) => form.setValue('merchantCategoryCode', value)}
+                  onValueChange={(value) => form.setValue('merchantCategory', parseInt(value))}
                   disabled={loading}
                 >
                   <SelectTrigger>
@@ -186,14 +329,89 @@ export function CreateMerchantForm({ onSuccess, onCancel }: CreateMerchantFormPr
                   </SelectTrigger>
                   <SelectContent>
                     {merchantCategories.map((category) => (
-                      <SelectItem key={category.value} value={category.value}>
+                      <SelectItem key={category.value} value={category.value.toString()}>
                         {category.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {form.formState.errors.merchantCategoryCode && (
-                  <p className="text-sm text-red-500">{form.formState.errors.merchantCategoryCode.message}</p>
+                {form.formState.errors.merchantCategory && (
+                  <p className="text-sm text-red-500">{form.formState.errors.merchantCategory.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Organization Type</Label>
+                <Select
+                  onValueChange={(value) => form.setValue('orgType', parseInt(value))}
+                  disabled={loading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select organization type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {organizationTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value.toString()}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {form.formState.errors.orgType && (
+                  <p className="text-sm text-red-500">{form.formState.errors.orgType.message}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="terminal">Terminal UUID</Label>
+                <Input
+                  id="terminal"
+                  placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                  {...form.register('terminal')}
+                  disabled={loading}
+                />
+                {form.formState.errors.terminal && (
+                  <p className="text-sm text-red-500">{form.formState.errors.terminal.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="address">Address (Optional)</Label>
+                <Input
+                  id="address"
+                  placeholder="Enter merchant address"
+                  {...form.register('address')}
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="merchantKey">Merchant Key</Label>
+                <Input
+                  id="merchantKey"
+                  placeholder="mk_test_key_001"
+                  {...form.register('merchantKey')}
+                  disabled={loading}
+                />
+                {form.formState.errors.merchantKey && (
+                  <p className="text-sm text-red-500">{form.formState.errors.merchantKey.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="merchantToken">Merchant Token</Label>
+                <Input
+                  id="merchantToken"
+                  placeholder="mt_test_token_001"
+                  {...form.register('merchantToken')}
+                  disabled={loading}
+                />
+                {form.formState.errors.merchantToken && (
+                  <p className="text-sm text-red-500">{form.formState.errors.merchantToken.message}</p>
                 )}
               </div>
             </div>
@@ -236,55 +454,253 @@ export function CreateMerchantForm({ onSuccess, onCancel }: CreateMerchantFormPr
             
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="settlementBankName">Bank Name</Label>
-                <Input
-                  id="settlementBankName"
-                  placeholder="Bank name for settlements"
-                  {...form.register('settlementBankName')}
+                <Label>Settlement Frequency</Label>
+                <Select
+                  onValueChange={(value) => form.setValue('settlementFrequency', value as 'DAILY' | 'WEEKLY' | 'MONTHLY')}
                   disabled={loading}
-                />
-                {form.formState.errors.settlementBankName && (
-                  <p className="text-sm text-red-500">{form.formState.errors.settlementBankName.message}</p>
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select frequency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {settlementFrequencies.map((freq) => (
+                      <SelectItem key={freq.value} value={freq.value}>
+                        {freq.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {form.formState.errors.settlementFrequency && (
+                  <p className="text-sm text-red-500">{form.formState.errors.settlementFrequency.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="settlementAccountName">Account Name</Label>
-                <Input
-                  id="settlementAccountName"
-                  placeholder="Account holder name"
-                  {...form.register('settlementAccountName')}
+                <Label>Surcharge On</Label>
+                <Select
+                  onValueChange={(value) => form.setValue('surchargeOn', value as 'CUSTOMER' | 'MERCHANT' | 'CUSTOMER_AND_MERCHANT' | 'PARENT')}
                   disabled={loading}
-                />
-                {form.formState.errors.settlementAccountName && (
-                  <p className="text-sm text-red-500">{form.formState.errors.settlementAccountName.message}</p>
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select surcharge target" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {surchargeOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {form.formState.errors.surchargeOn && (
+                  <p className="text-sm text-red-500">{form.formState.errors.surchargeOn.message}</p>
                 )}
               </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="settlementAccountNumber">Account Number</Label>
+                <Label htmlFor="surchargeOnMerchant">Merchant Surcharge (%)</Label>
                 <Input
-                  id="settlementAccountNumber"
-                  placeholder="Settlement account number"
-                  {...form.register('settlementAccountNumber')}
+                  id="surchargeOnMerchant"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="1.5"
+                  placeholder="0.00"
+                  {...form.register('surchargeOnMerchant', { valueAsNumber: true })}
                   disabled={loading}
                 />
-                {form.formState.errors.settlementAccountNumber && (
-                  <p className="text-sm text-red-500">{form.formState.errors.settlementAccountNumber.message}</p>
+                {form.formState.errors.surchargeOnMerchant && (
+                  <p className="text-sm text-red-500">{form.formState.errors.surchargeOnMerchant.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="settlementSortCode">Sort Code (Optional)</Label>
+                <Label htmlFor="surchargeOnCustomer">Customer Surcharge (%)</Label>
                 <Input
-                  id="settlementSortCode"
-                  placeholder="Bank sort code"
-                  {...form.register('settlementSortCode')}
+                  id="surchargeOnCustomer"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="1.5"
+                  placeholder="0.00"
+                  {...form.register('surchargeOnCustomer', { valueAsNumber: true })}
+                  disabled={loading}
+                />
+                {form.formState.errors.surchargeOnCustomer && (
+                  <p className="text-sm text-red-500">{form.formState.errors.surchargeOnCustomer.message}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="parentBank">Parent Bank UUID</Label>
+                <Input
+                  id="parentBank"
+                  placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                  {...form.register('parentBank')}
+                  disabled={loading}
+                />
+                {form.formState.errors.parentBank && (
+                  <p className="text-sm text-red-500">{form.formState.errors.parentBank.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Settlement Account Type</Label>
+                <Select
+                  onValueChange={(value) => form.setValue('settlementAcct', value as 'PARENT_BANK' | 'MERCHANT_BANK')}
+                  disabled={loading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select account type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {settlementAccountTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {form.formState.errors.settlementAcct && (
+                  <p className="text-sm text-red-500">{form.formState.errors.settlementAcct.message}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="taxNumber">Tax Number</Label>
+                <Input
+                  id="taxNumber"
+                  placeholder="12345678901 (11-15 characters)"
+                  {...form.register('taxNumber')}
+                  disabled={loading}
+                />
+                {form.formState.errors.taxNumber && (
+                  <p className="text-sm text-red-500">{form.formState.errors.taxNumber.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="vatPercentage">VAT Percentage (%)</Label>
+                <Input
+                  id="vatPercentage"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  placeholder="0.00"
+                  {...form.register('vatPercentage', { valueAsNumber: true })}
+                  disabled={loading}
+                />
+                {form.formState.errors.vatPercentage && (
+                  <p className="text-sm text-red-500">{form.formState.errors.vatPercentage.message}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="vatApplicable"
+                  checked={form.watch('vatApplicable')}
+                  onCheckedChange={(checked) => 
+                    form.setValue('vatApplicable', checked as boolean)
+                  }
+                  disabled={loading}
+                />
+                <Label htmlFor="vatApplicable">VAT Applicable</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="surchargeSum"
+                  checked={form.watch('surchargeSum')}
+                  onCheckedChange={(checked) => 
+                    form.setValue('surchargeSum', checked as boolean)
+                  }
+                  disabled={loading}
+                />
+                <Label htmlFor="surchargeSum">Sum Surcharges</Label>
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* User Details */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">User Details</h3>
+            
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  placeholder="Enter first name"
+                  {...form.register('firstName')}
+                  disabled={loading}
+                />
+                {form.formState.errors.firstName && (
+                  <p className="text-sm text-red-500">{form.formState.errors.firstName.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  placeholder="Enter last name"
+                  {...form.register('lastName')}
+                  disabled={loading}
+                />
+                {form.formState.errors.lastName && (
+                  <p className="text-sm text-red-500">{form.formState.errors.lastName.message}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="email">User Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="user@merchant.com"
+                  {...form.register('email')}
+                  disabled={loading}
+                />
+                {form.formState.errors.email && (
+                  <p className="text-sm text-red-500">{form.formState.errors.email.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phoneNumber">Phone Number (Optional)</Label>
+                <Input
+                  id="phoneNumber"
+                  placeholder="+233501234567"
+                  {...form.register('phoneNumber')}
                   disabled={loading}
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Enter password (min 8 characters)"
+                {...form.register('password')}
+                disabled={loading}
+              />
+              {form.formState.errors.password && (
+                <p className="text-sm text-red-500">{form.formState.errors.password.message}</p>
+              )}
             </div>
           </div>
 
@@ -296,23 +712,38 @@ export function CreateMerchantForm({ onSuccess, onCancel }: CreateMerchantFormPr
             
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="bankName">Bank Name</Label>
+                <Label htmlFor="bankId">Bank UUID</Label>
                 <Input
-                  id="bankName"
-                  placeholder="Primary bank name"
-                  {...form.register('bankName')}
+                  id="bankId"
+                  placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                  {...form.register('bankId')}
                   disabled={loading}
                 />
-                {form.formState.errors.bankName && (
-                  <p className="text-sm text-red-500">{form.formState.errors.bankName.message}</p>
+                {form.formState.errors.bankId && (
+                  <p className="text-sm text-red-500">{form.formState.errors.bankId.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="branch">Branch UUID</Label>
+                <Input
+                  id="branch"
+                  placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                  {...form.register('branch')}
+                  disabled={loading}
+                />
+                {form.formState.errors.branch && (
+                  <p className="text-sm text-red-500">{form.formState.errors.branch.message}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
                 <Label htmlFor="accountName">Account Name</Label>
                 <Input
                   id="accountName"
-                  placeholder="Primary account holder name"
+                  placeholder="Account holder name"
                   {...form.register('accountName')}
                   disabled={loading}
                 />
@@ -320,14 +751,12 @@ export function CreateMerchantForm({ onSuccess, onCancel }: CreateMerchantFormPr
                   <p className="text-sm text-red-500">{form.formState.errors.accountName.message}</p>
                 )}
               </div>
-            </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="accountNumber">Account Number</Label>
                 <Input
                   id="accountNumber"
-                  placeholder="Primary account number"
+                  placeholder="Account number"
                   {...form.register('accountNumber')}
                   disabled={loading}
                 />
@@ -335,16 +764,28 @@ export function CreateMerchantForm({ onSuccess, onCancel }: CreateMerchantFormPr
                   <p className="text-sm text-red-500">{form.formState.errors.accountNumber.message}</p>
                 )}
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="sortCode">Sort Code (Optional)</Label>
-                <Input
-                  id="sortCode"
-                  placeholder="Bank sort code"
-                  {...form.register('sortCode')}
-                  disabled={loading}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label>Account Type</Label>
+              <Select
+                onValueChange={(value) => form.setValue('accountType', value as 'CALL_ACCOUNT' | 'CURRENT_ACCOUNT' | 'SAVINGS' | 'CREDIT' | 'MB_WALLET_ACCOUNT' | 'PLS_ACCOUNT' | 'TDR_ACCOUNT')}
+                disabled={loading}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select account type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {accountTypes.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {form.formState.errors.accountType && (
+                <p className="text-sm text-red-500">{form.formState.errors.accountType.message}</p>
+              )}
             </div>
           </div>
 
