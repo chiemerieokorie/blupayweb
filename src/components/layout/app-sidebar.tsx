@@ -17,6 +17,8 @@ import {
     IconTransfer,
     IconFileText,
     IconPigMoney,
+    IconSquareRoundedLetterM,
+    IconUserCog,
 } from "@tabler/icons-react"
 
 import {NavGroup} from "@/components/layout/nav-group"
@@ -59,7 +61,7 @@ const getNavigationData = (user: { firstName: string; lastName: string; email: s
         {
             name: "Merchants",
             url: ROUTES.MERCHANTS.INDEX,
-            icon: IconAffiliate,
+            icon: IconSquareRoundedLetterM,
         },
         {
             name: "Users",
@@ -130,7 +132,7 @@ const getNavigationData = (user: { firstName: string; lastName: string; email: s
         {
             name: "Merchants",
             url: ROUTES.MERCHANTS.INDEX,
-            icon: IconAffiliate,
+            icon: IconSquareRoundedLetterM,
         },
         {
             name: "Devices",

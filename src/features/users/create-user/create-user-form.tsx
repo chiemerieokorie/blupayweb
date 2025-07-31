@@ -26,6 +26,7 @@ import { useUsers } from "../hooks";
 import { useToast } from "@/hooks/use-toast";
 import { UserRoleEnum } from "@/sdk/types";
 import { IconPlus, IconRefresh } from "@tabler/icons-react";
+import { getAllRoles, getRoleIcon } from "@/lib/user-roles";
 
 const createUserSchema = z.object({
   firstName: z.string()
@@ -323,10 +324,17 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="administrator">Admin</SelectItem>
-                    <SelectItem value="merchant">Merchant</SelectItem>
-                    <SelectItem value="partner-bank">Partner Bank</SelectItem>
-                    <SelectItem value="submerchant">Sub Merchant</SelectItem>
+                    {getAllRoles().map((role) => {
+                      const RoleIcon = getRoleIcon(role.value);
+                      return (
+                        <SelectItem key={role.value} value={role.value}>
+                          <div className="flex items-center gap-2">
+                            <RoleIcon size={16} className="text-muted-foreground" />
+                            {role.label}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
                 <FormMessage />

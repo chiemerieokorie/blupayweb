@@ -15,7 +15,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { IconDots, IconTrash, IconEdit, IconEye } from "@tabler/icons-react";
-import { User, UserRoleEnum } from "@/sdk/types";
+import { User } from "@/sdk/types";
+import { getRoleIcon, getRoleLabel, getRoleBadgeVariant } from "@/lib/user-roles";
 
 interface UserTableRowProps {
   user: User;
@@ -34,21 +35,6 @@ export function UserTableRow({
   onSelect,
   isSelected 
 }: UserTableRowProps) {
-  
-  const getRoleBadgeVariant = (role: string) => {
-    switch (role) {
-      case UserRoleEnum.ADMIN:
-        return "destructive";
-      case UserRoleEnum.MERCHANT:
-        return "default";
-      case UserRoleEnum.PARTNER_BANK:
-        return "secondary";
-      case UserRoleEnum.SUB_MERCHANT:
-        return "outline";
-      default:
-        return "default";
-    }
-  };
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
@@ -70,9 +56,15 @@ export function UserTableRow({
       </TableCell>
       <TableCell>{user.email}</TableCell>
       <TableCell>
-        <Badge variant={getRoleBadgeVariant(user.role)}>
-          {user.role}
-        </Badge>
+        <div className="flex items-center gap-2">
+          {(() => {
+            const RoleIcon = getRoleIcon(user.role);
+            return <RoleIcon size={16} className="text-muted-foreground" />;
+          })()}
+          <Badge variant={getRoleBadgeVariant(user.role)}>
+            {getRoleLabel(user.role)}
+          </Badge>
+        </div>
       </TableCell>
       <TableCell>
         <Badge variant={getStatusBadgeVariant(user.status)}>
