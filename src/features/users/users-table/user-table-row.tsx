@@ -57,11 +57,11 @@ export function UserTableRow({
       <TableCell>{user.email}</TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
-          {(() => {
-            const RoleIcon = getRoleIcon(user.role);
-            return <RoleIcon size={16} className="text-muted-foreground" />;
-          })()}
-          <Badge variant={getRoleBadgeVariant(user.role)}>
+          <Badge variant={getRoleBadgeVariant(user.role)} className={'gap-1 text-xs'}>
+            {(() => {
+              const RoleIcon = getRoleIcon(user.role);
+              return <RoleIcon size={16} className="size-3" />;
+            })()}
             {getRoleLabel(user.role)}
           </Badge>
         </div>

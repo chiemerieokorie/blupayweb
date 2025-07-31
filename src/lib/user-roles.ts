@@ -17,14 +17,14 @@ export const ROLE_CONFIG: Record<UserRoleEnum, RoleConfig> = {
   [UserRoleEnum.MERCHANT]: {
     icon: IconSquareRoundedLetterM,
     label: "Merchant",
-    badgeVariant: "default",
-    color: "hsl(var(--primary))",
+    badgeVariant: "secondary",
+    color: "hsl(var(--secondary-foreground))",
   },
   [UserRoleEnum.SUB_MERCHANT]: {
     icon: IconAffiliate,
     label: "Sub Merchant",
-    badgeVariant: "outline",
-    color: "hsl(var(--muted-foreground))",
+    badgeVariant: "secondary",
+    color: "hsl(var(--secondary-foreground))",
   },
   [UserRoleEnum.PARTNER_BANK]: {
     icon: IconBuildingBank,
@@ -35,8 +35,8 @@ export const ROLE_CONFIG: Record<UserRoleEnum, RoleConfig> = {
   [UserRoleEnum.ADMIN]: {
     icon: IconUserCog,
     label: "Admin",
-    badgeVariant: "destructive",
-    color: "hsl(var(--destructive))",
+    badgeVariant: "secondary",
+    color: "hsl(var(--secondary-foreground))",
   },
 };
 
