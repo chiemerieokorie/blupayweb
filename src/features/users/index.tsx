@@ -4,7 +4,6 @@ import {useEffect, useState} from "react";
 import {Alert, AlertDescription} from "@/components/ui/alert";
 import {FeatureErrorBoundary} from "@/components/error-boundary";
 import {UsersTable} from "./users-table";
-import {UserFilters} from "./user-filters";
 import {useUsers} from "./hooks";
 import {PageContainer, PageHeader, BreadCrumbs, BreadcrumbPage, Actions} from "@/components/layout/page-container";
 import {Button} from "@/components/ui/button";
@@ -52,7 +51,6 @@ export default function UsersPage() {
 
                 <div className="space-y-4">
                     <FeatureErrorBoundary featureName="User Table">
-                        <UserFilters/>
                         <UsersTable showCreateDialog={showCreateDialog} setShowCreateDialog={setShowCreateDialog}/>
                     </FeatureErrorBoundary>
                 </div>

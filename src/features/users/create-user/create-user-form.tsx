@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useUsers } from "./hooks";
+import { useUsers } from "../hooks";
 import { useToast } from "@/hooks/use-toast";
 import { UserRoleEnum } from "@/sdk/types";
 import { IconPlus, IconRefresh } from "@tabler/icons-react";
