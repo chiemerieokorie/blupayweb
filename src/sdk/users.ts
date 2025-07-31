@@ -11,7 +11,7 @@ export const userService = {
   },
 
   async createUser(data: CreateUserDto): Promise<User> {
-    return apiClient.post('/users', data);
+    return apiClient.post('/users/create', data);
   },
 
   async updateUser(id: string, data: UpdateUserDto): Promise<User> {
