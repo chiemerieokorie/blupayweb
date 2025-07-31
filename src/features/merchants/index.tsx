@@ -4,18 +4,18 @@ import {useState} from 'react';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Download, Plus, Search} from 'lucide-react';
-import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger} from '@/components/ui/dialog';
+import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog';
 import {useMerchantsPage} from './hooks';
 import {MerchantsTable} from './merchants-table';
-import {CreateMerchantForm} from './create-merchant-form';
 import {Merchant} from '@/sdk/types';
 import {PageContainer, PageHeader, BreadCrumbs, BreadcrumbPage, Actions} from '@/components/layout/page-container';
+import {useRouter} from 'next/navigation';
 
 export function MerchantsPage() {
     const {merchants, loading, error, filters, updateFilters, refetch} = useMerchantsPage();
-    const [showCreateForm, setShowCreateForm] = useState(false);
     const [selectedMerchant, setSelectedMerchant] = useState<Merchant | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const router = useRouter();
 
     const handlePageChange = async (page: number) => {
         await updateFilters({page});
@@ -45,9 +45,8 @@ export function MerchantsPage() {
         console.log('Manage API keys for:', merchant);
     };
 
-    const handleCreateSuccess = () => {
-        setShowCreateForm(false);
-        refetch();
+    const handleCreateMerchant = () => {
+        router.push('/merchants/onboarding');
     };
 
     if (error) {
@@ -78,20 +77,10 @@ export function MerchantsPage() {
                         <Download className="h-4 w-4 mr-2"/>
                         Export
                     </Button>
-                    <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
-                        <DialogTrigger asChild>
-                            <Button>
-                                <Plus className="h-4 w-4 mr-2"/>
-                                New Merchant
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto p-0">
-                            <CreateMerchantForm
-                                onSuccess={handleCreateSuccess}
-                                onCancel={() => setShowCreateForm(false)}
-                            />
-                        </DialogContent>
-                    </Dialog>
+                    <Button onClick={handleCreateMerchant}>
+                        <Plus className="h-4 w-4 mr-2"/>
+                        New Merchant
+                    </Button>
                 </Actions>
             </PageHeader>
 

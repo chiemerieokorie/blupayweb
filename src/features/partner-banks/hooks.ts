@@ -36,7 +36,7 @@ export function usePartnerBanks() {
     }
   }, [filter, setPartnerBanksState, setFilter]);
 
-  const createPartnerBank = useCallback(async (partnerBankData: CreatePartnerBankDto) => {
+  const createPartnerBank = useCallback(async (partnerBankData: CreatePartnerBankDto | FormData) => {
     try {
       setPartnerBanksState(prev => ({ ...prev, loading: true, error: null }));
       

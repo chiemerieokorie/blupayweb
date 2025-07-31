@@ -15,6 +15,7 @@ import {cn} from "@/lib/utils"
 
 interface BreadCrumbsProps {
     children: React.ReactNode
+    disableLastTwoEllipsis?: boolean
 }
 
 interface ActionsProps {
@@ -22,7 +23,7 @@ interface ActionsProps {
 }
 
 
-const BreadCrumbs = ({children}: BreadCrumbsProps) => {
+const BreadCrumbs = ({children, disableLastTwoEllipsis}: BreadCrumbsProps) => {
     return <>{children}</>
 }
 
@@ -54,10 +55,10 @@ export const PageHeader = React.forwardRef<
     ) : undefined
 
 
-    const processBreadcrumbs = (breadcrumbChildren: React.ReactNode) => {
+    const processBreadcrumbs = (breadcrumbChildren: React.ReactNode, disableLastTwoEllipsis?: boolean) => {
         const items = React.Children.toArray(breadcrumbChildren).filter(Boolean)
 
-        if (items.length <= 3) {
+        if (items.length <= 3 || disableLastTwoEllipsis) {
             return items.map((item, index) => (
                 <React.Fragment key={index}>
                     <BreadcrumbItem>
@@ -116,7 +117,7 @@ export const PageHeader = React.forwardRef<
                 />
                 <Breadcrumb>
                     <BreadcrumbList>
-                        {!!breadCrumbsComponent ? processBreadcrumbs(breadCrumbsComponent.props.children) : null}
+                        {!!breadCrumbsComponent ? processBreadcrumbs(breadCrumbsComponent.props.children, breadCrumbsComponent.props.disableLastTwoEllipsis) : null}
                     </BreadcrumbList>
                 </Breadcrumb>
 

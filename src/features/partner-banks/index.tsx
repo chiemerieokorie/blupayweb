@@ -8,10 +8,13 @@ import {usePartnerBanks} from "./hooks";
 import {PageContainer, PageHeader, BreadCrumbs, BreadcrumbPage, Actions} from '@/components/layout/page-container';
 import {Button} from "@/components/ui/button";
 import {Plus} from "lucide-react";
+import {useRouter} from "next/navigation";
+import {ROUTES} from "@/lib/constants";
 
 export default function PartnerBanksPage() {
     const {fetchPartnerBanks, total, loading, error} = usePartnerBanks();
     const [showCreateDialog, setShowCreateDialog] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
         fetchPartnerBanks();
@@ -40,7 +43,7 @@ export default function PartnerBanksPage() {
                     <BreadcrumbPage>Partner Banks</BreadcrumbPage>
                 </BreadCrumbs>
                 <Actions>
-                    <Button onClick={() => setShowCreateDialog(true)}>
+                    <Button onClick={() => router.push(ROUTES.PARTNER_BANKS.ONBOARDING.BASIC_DETAILS)}>
                         <Plus className="h-4 w-4 mr-2"/>
                         Add Partner Bank
                     </Button>

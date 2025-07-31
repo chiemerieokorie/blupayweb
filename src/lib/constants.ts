@@ -35,6 +35,13 @@ export const ROUTES = {
         CREATE: '/merchants/create',
         EDIT: (id: string) => `/merchants/edit/${id}`,
         VIEW: (id: string) => `/merchants/view/${id}`,
+        ONBOARDING: {
+            MERCHANT_DETAILS: '/merchants/onboarding/merchant-details',
+            SETTLEMENT_DETAILS: '/merchants/onboarding/settlement-details',
+            USER_DETAILS: '/merchants/onboarding/user-details',
+            BANK_DETAILS: '/merchants/onboarding/bank-details',
+            OVA_DETAILS: '/merchants/onboarding/ova-details',
+        },
     },
     SUB_MERCHANTS: {
         INDEX: '/sub-merchants',
@@ -60,6 +67,12 @@ export const ROUTES = {
         CREATE: '/partner-banks/create',
         EDIT: (id: string) => `/partner-banks/edit/${id}`,
         VIEW: (id: string) => `/partner-banks/view/${id}`,
+        ONBOARDING: {
+            BASIC_DETAILS: '/partner-banks/onboarding/basic-details',
+            COMMISSION_DETAILS: '/partner-banks/onboarding/commission-details',
+            SETTLEMENT_DETAILS: '/partner-banks/onboarding/settlement-details',
+            CONFIGURATION: '/partner-banks/onboarding/configuration',
+        },
     },
     DEVICES: {
         INDEX: '/devices',
