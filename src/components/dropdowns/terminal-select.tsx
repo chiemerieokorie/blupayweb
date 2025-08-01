@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Check, ChevronsUpDown, Search, Terminal, Loader2 } from 'lucide-react';
+import { Check, ChevronsUpDown, Terminal as TerminalIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -37,18 +37,19 @@ export function TerminalSelect({
     const fetchTerminals = async () => {
       setLoading(true);
       try {
-        let response;
+        let devices;
         if (merchantId) {
-          response = await deviceService.getDevicesByMerchant(merchantId);
+          devices = await deviceService.getDevicesByMerchant(merchantId);
         } else if (partnerBankId) {
-          response = await deviceService.getDevicesByPartnerBank(partnerBankId);
+          devices = await deviceService.getDevicesByPartnerBank(partnerBankId);
         } else {
-          const devicesResponse = await deviceService.getDevices();
-          response = devicesResponse.data || [];
+          const response = await deviceService.getDevices();
+          devices = response.data || [];
         }
         
-        const deviceArray = Array.isArray(response) ? response : [response];
-        setTerminals(deviceArray.filter(device => device.deviceType === 'POS' || device.deviceType === 'ATM'));
+        // All devices are terminals in this system
+        const deviceArray = Array.isArray(devices) ? devices : [];
+        setTerminals(deviceArray);
       } catch (error) {
         console.error('Failed to fetch terminals:', error);
         setTerminals([]);
@@ -63,14 +64,12 @@ export function TerminalSelect({
   const filteredTerminals = useMemo(() => {
     if (!searchValue) return terminals;
     return terminals.filter(terminal =>
-      terminal.serialNumber.toLowerCase().includes(searchValue.toLowerCase()) ||
-      terminal.model.toLowerCase().includes(searchValue.toLowerCase()) ||
-      terminal.manufacturer.toLowerCase().includes(searchValue.toLowerCase()) ||
-      (terminal.location && terminal.location.toLowerCase().includes(searchValue.toLowerCase()))
+      terminal.deviceId.toLowerCase().includes(searchValue.toLowerCase()) ||
+      (terminal.merchantUuid && terminal.merchantUuid.toLowerCase().includes(searchValue.toLowerCase()))
     );
   }, [terminals, searchValue]);
 
-  const selectedTerminal = terminals.find((terminal) => terminal.id === value);
+  const selectedTerminal = terminals.find((terminal) => terminal.uuid === value);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -79,14 +78,14 @@ export function TerminalSelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn("justify-between", className)}
+          className={cn("w-full justify-between", className)}
           disabled={disabled || loading}
         >
           <div className="flex items-center gap-2">
-            <Terminal className="h-4 w-4 text-muted-foreground" />
+            <TerminalIcon className="h-4 w-4 text-muted-foreground" />
             {selectedTerminal ? (
               <span className="truncate">
-                {selectedTerminal.serialNumber} - {selectedTerminal.model}
+                {selectedTerminal.deviceId} - {selectedTerminal.status}
               </span>
             ) : (
               <span className="text-muted-foreground">{placeholder}</span>
@@ -101,15 +100,11 @@ export function TerminalSelect({
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0">
         <Command>
-          <div className="flex items-center border-b px-3">
-            <Search className="h-4 w-4 shrink-0 opacity-50" />
-            <CommandInput
-              placeholder="Search terminals..."
-              value={searchValue}
-              onValueChange={setSearchValue}
-              className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
-            />
-          </div>
+          <CommandInput
+            placeholder="Search terminals..."
+            value={searchValue}
+            onValueChange={setSearchValue}
+          />
           <CommandList>
             <CommandEmpty>
               {loading ? "Loading terminals..." : "No terminals found."}
@@ -117,8 +112,8 @@ export function TerminalSelect({
             <CommandGroup>
               {filteredTerminals.map((terminal) => (
                 <CommandItem
-                  key={terminal.id}
-                  value={terminal.id}
+                  key={terminal.uuid}
+                  value={terminal.uuid}
                   onSelect={(currentValue) => {
                     onValueChange(currentValue === value ? "" : currentValue);
                     setOpen(false);
@@ -126,29 +121,29 @@ export function TerminalSelect({
                   className="cursor-pointer"
                 >
                   <div className="flex items-center gap-3 flex-1">
-                    <Terminal className="h-4 w-4 text-muted-foreground" />
+                    <TerminalIcon className="h-4 w-4 text-muted-foreground" />
                     <div className="flex flex-col">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium">{terminal.serialNumber}</span>
-                        <span className="text-xs text-muted-foreground px-1.5 py-0.5 bg-muted rounded">
-                          {terminal.deviceType}
+                        <span className="font-medium">{terminal.deviceId}</span>
+                        <span className={cn(
+                          "text-xs px-1.5 py-0.5 rounded",
+                          terminal.status === 'ALLOCATED' ? 'text-green-600 bg-green-50' :
+                          terminal.status === 'SUBMITTED' ? 'text-blue-600 bg-blue-50' :
+                          terminal.status === 'BLOCKED' ? 'text-red-600 bg-red-50' :
+                          'text-gray-600 bg-gray-50'
+                        )}>
+                          {terminal.status}
                         </span>
-                        {terminal.status === 'ACTIVE' && (
-                          <span className="text-xs text-green-600 px-1.5 py-0.5 bg-green-50 rounded">
-                            Active
-                          </span>
-                        )}
                       </div>
                       <span className="text-sm text-muted-foreground">
-                        {terminal.manufacturer} {terminal.model}
-                        {terminal.location && ` • ${terminal.location}`}
+                        {terminal.merchantUuid ? `Merchant: ${terminal.merchantUuid}` : 'Unassigned'}
                       </span>
                     </div>
                   </div>
                   <Check
                     className={cn(
                       "ml-auto h-4 w-4",
-                      value === terminal.id ? "opacity-100" : "opacity-0"
+                      value === terminal.uuid ? "opacity-100" : "opacity-0"
                     )}
                   />
                 </CommandItem>

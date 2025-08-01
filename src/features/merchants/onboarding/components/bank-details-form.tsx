@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { IconCreditCard, IconArrowLeft, IconArrowRight } from '@tabler/icons-react';
+import { IconCreditCard, IconArrowLeft, IconArrowRight, IconBuildingBank, IconGitBranch, IconFileInvoice, IconNumber, IconUser } from '@tabler/icons-react';
+import { BankSelect, BranchSelect } from '@/components/dropdowns';
 import { ROUTES } from '@/lib/constants';
 import { 
   bankDetailsSchema, 
@@ -88,11 +89,21 @@ export function BankDetailsForm() {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="merchantBank">Merchant Bank UUID</Label>
-              <Input
-                id="merchantBank"
-                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                {...form.register('merchantBank')}
+              <Label htmlFor="merchantBank" className="flex items-center gap-2">
+                <IconBuildingBank className="h-4 w-4" />
+                Merchant Bank
+              </Label>
+              <BankSelect
+                value={form.watch('merchantBank')}
+                onValueChange={(value) => {
+                  form.setValue('merchantBank', value);
+                  // Clear branch when bank changes
+                  if (form.watch('branch')) {
+                    form.setValue('branch', '');
+                  }
+                }}
+                placeholder="Select bank..."
+                className="w-full"
               />
               {form.formState.errors.merchantBank && (
                 <p className="text-sm text-red-500">{form.formState.errors.merchantBank.message}</p>
@@ -100,11 +111,17 @@ export function BankDetailsForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="branch">Branch UUID</Label>
-              <Input
-                id="branch"
-                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                {...form.register('branch')}
+              <Label htmlFor="branch" className="flex items-center gap-2">
+                <IconGitBranch className="h-4 w-4" />
+                Branch
+              </Label>
+              <BranchSelect
+                value={form.watch('branch')}
+                onValueChange={(value) => form.setValue('branch', value)}
+                disabled={!form.watch('merchantBank')}
+                placeholder="Select branch..."
+                className="w-full"
+                bankId={form.watch('merchantBank')}
               />
               {form.formState.errors.branch && (
                 <p className="text-sm text-red-500">{form.formState.errors.branch.message}</p>
@@ -113,12 +130,15 @@ export function BankDetailsForm() {
           </div>
 
           <div className="space-y-2">
-            <Label>Account Type</Label>
+            <Label className="flex items-center gap-2">
+              <IconFileInvoice className="h-4 w-4" />
+              Account Type
+            </Label>
             <Select
               onValueChange={(value) => form.setValue('accountType', value as 'CURRENT_ACCOUNT' | 'SAVINGS' | 'CALL_ACCOUNT')}
               defaultValue={form.watch('accountType')}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select account type" />
               </SelectTrigger>
               <SelectContent>
@@ -136,10 +156,14 @@ export function BankDetailsForm() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="accountNumber">Account Number</Label>
+              <Label htmlFor="accountNumber" className="flex items-center gap-2">
+                <IconNumber className="h-4 w-4" />
+                Account Number
+              </Label>
               <Input
                 id="accountNumber"
                 placeholder="Account number"
+                className="w-full"
                 {...form.register('accountNumber')}
               />
               {form.formState.errors.accountNumber && (
@@ -148,10 +172,14 @@ export function BankDetailsForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="accountName">Account Name</Label>
+              <Label htmlFor="accountName" className="flex items-center gap-2">
+                <IconUser className="h-4 w-4" />
+                Account Name
+              </Label>
               <Input
                 id="accountName"
                 placeholder="Account holder name"
+                className="w-full"
                 {...form.register('accountName')}
               />
               {form.formState.errors.accountName && (

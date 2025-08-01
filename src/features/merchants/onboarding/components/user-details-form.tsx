@@ -8,7 +8,8 @@ import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { IconUser, IconArrowLeft, IconArrowRight } from '@tabler/icons-react';
+import { IconUser, IconArrowLeft, IconArrowRight, IconMail, IconPhone } from '@tabler/icons-react';
+import { PhoneNumberInput } from '@/components/ui/phone-number-input';
 import { ROUTES } from '@/lib/constants';
 import { 
   userDetailsSchema, 
@@ -85,10 +86,14 @@ export function UserDetailsForm() {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
+              <Label htmlFor="firstName" className="flex items-center gap-2">
+                <IconUser className="h-4 w-4" />
+                First Name
+              </Label>
               <Input
                 id="firstName"
                 placeholder="Enter first name"
+                className="w-full"
                 {...form.register('firstName')}
               />
               {form.formState.errors.firstName && (
@@ -97,10 +102,14 @@ export function UserDetailsForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
+              <Label htmlFor="lastName" className="flex items-center gap-2">
+                <IconUser className="h-4 w-4" />
+                Last Name
+              </Label>
               <Input
                 id="lastName"
                 placeholder="Enter last name"
+                className="w-full"
                 {...form.register('lastName')}
               />
               {form.formState.errors.lastName && (
@@ -111,11 +120,15 @@ export function UserDetailsForm() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="email">User Email</Label>
+              <Label htmlFor="email" className="flex items-center gap-2">
+                <IconMail className="h-4 w-4" />
+                User Email
+              </Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="user@merchant.com"
+                className="w-full"
                 {...form.register('email')}
               />
               {form.formState.errors.email && (
@@ -124,11 +137,17 @@ export function UserDetailsForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phoneNumber">Phone Number</Label>
-              <Input
+              <Label htmlFor="phoneNumber" className="flex items-center gap-2">
+                <IconPhone className="h-4 w-4" />
+                Phone Number
+              </Label>
+              <PhoneNumberInput
                 id="phoneNumber"
-                placeholder="0501234567 (10-12 digits)"
-                {...form.register('phoneNumber')}
+                placeholder="Enter phone number"
+                defaultCountry="GH"
+                className="w-full"
+                value={form.watch('phoneNumber')}
+                onChange={(value) => form.setValue('phoneNumber', value || '')}
               />
               {form.formState.errors.phoneNumber && (
                 <p className="text-sm text-red-500">{form.formState.errors.phoneNumber.message}</p>

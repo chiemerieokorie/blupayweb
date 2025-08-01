@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CountrySelect } from '@/components/ui/country-select';
-import { IconBuilding, IconArrowRight } from '@tabler/icons-react';
+import { IconBuilding, IconArrowRight, IconBarcode, IconMail, IconWorld, IconCategory, IconBuildingEstate, IconDevices, IconNumber, IconMapPin } from '@tabler/icons-react';
+import { TerminalSelect } from '@/components/dropdowns';
 import { ROUTES } from '@/lib/constants';
 import { 
   merchantDetailsSchema, 
@@ -73,10 +74,14 @@ export function MerchantDetailsForm() {
           {/* Basic Information */}
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="merchantName">Merchant Name</Label>
+              <Label htmlFor="merchantName" className="flex items-center gap-2">
+                <IconBuilding className="h-4 w-4" />
+                Merchant Name
+              </Label>
               <Input
                 id="merchantName"
                 placeholder="Enter merchant name"
+                className="w-full"
                 {...form.register('merchantName')}
               />
               {form.formState.errors.merchantName && (
@@ -85,10 +90,14 @@ export function MerchantDetailsForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="merchantCode">Merchant Code</Label>
+              <Label htmlFor="merchantCode" className="flex items-center gap-2">
+                <IconBarcode className="h-4 w-4" />
+                Merchant Code
+              </Label>
               <Input
                 id="merchantCode"
                 placeholder="BP001"
+                className="w-full"
                 {...form.register('merchantCode')}
               />
               {form.formState.errors.merchantCode && (
@@ -99,11 +108,15 @@ export function MerchantDetailsForm() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="notificationEmail">Notification Email</Label>
+              <Label htmlFor="notificationEmail" className="flex items-center gap-2">
+                <IconMail className="h-4 w-4" />
+                Notification Email
+              </Label>
               <Input
                 id="notificationEmail"
                 type="email"
                 placeholder="notifications@merchant.com"
+                className="w-full"
                 {...form.register('notificationEmail')}
               />
               {form.formState.errors.notificationEmail && (
@@ -112,11 +125,15 @@ export function MerchantDetailsForm() {
             </div>
 
             <div className="space-y-2">
-              <Label>Country</Label>
+              <Label className="flex items-center gap-2">
+                <IconWorld className="h-4 w-4" />
+                Country
+              </Label>
               <CountrySelect
                 value={form.watch('country')}
                 onValueChange={(value) => form.setValue('country', value)}
                 placeholder="Select country"
+                className="w-full"
               />
               {form.formState.errors.country && (
                 <p className="text-sm text-red-500">{form.formState.errors.country.message}</p>
@@ -126,12 +143,15 @@ export function MerchantDetailsForm() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label>Merchant Category</Label>
+              <Label className="flex items-center gap-2">
+                <IconCategory className="h-4 w-4" />
+                Merchant Category
+              </Label>
               <Select
                 onValueChange={(value) => form.setValue('merchantCategory', parseInt(value))}
                 defaultValue={form.watch('merchantCategory')?.toString()}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -148,12 +168,15 @@ export function MerchantDetailsForm() {
             </div>
 
             <div className="space-y-2">
-              <Label>Organization Type</Label>
+              <Label className="flex items-center gap-2">
+                <IconBuildingEstate className="h-4 w-4" />
+                Organization Type
+              </Label>
               <Select
                 onValueChange={(value) => form.setValue('orgType', parseInt(value))}
                 defaultValue={form.watch('orgType')?.toString()}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select organization type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -172,11 +195,15 @@ export function MerchantDetailsForm() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="terminal">Terminal UUID</Label>
-              <Input
-                id="terminal"
-                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                {...form.register('terminal')}
+              <Label htmlFor="terminal" className="flex items-center gap-2">
+                <IconDevices className="h-4 w-4" />
+                Terminal
+              </Label>
+              <TerminalSelect
+                value={form.watch('terminal')}
+                onValueChange={(value) => form.setValue('terminal', value)}
+                placeholder="Select terminal..."
+                className="w-full"
               />
               {form.formState.errors.terminal && (
                 <p className="text-sm text-red-500">{form.formState.errors.terminal.message}</p>
@@ -184,10 +211,14 @@ export function MerchantDetailsForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="tinNumber">TIN Number</Label>
+              <Label htmlFor="tinNumber" className="flex items-center gap-2">
+                <IconNumber className="h-4 w-4" />
+                TIN Number
+              </Label>
               <Input
                 id="tinNumber"
                 placeholder="Enter TIN number (11-15 characters)"
+                className="w-full"
                 {...form.register('tinNumber')}
               />
               {form.formState.errors.tinNumber && (
@@ -197,10 +228,14 @@ export function MerchantDetailsForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="merchantAddress">Merchant Address</Label>
+            <Label htmlFor="merchantAddress" className="flex items-center gap-2">
+              <IconMapPin className="h-4 w-4" />
+              Merchant Address
+            </Label>
             <Input
               id="merchantAddress"
               placeholder="Enter merchant address"
+              className="w-full"
               {...form.register('merchantAddress')}
             />
             {form.formState.errors.merchantAddress && (

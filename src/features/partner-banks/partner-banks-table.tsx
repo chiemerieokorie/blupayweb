@@ -20,16 +20,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { usePartnerBanks, useSelectedPartnerBank } from "./hooks";
 import { PartnerBank } from "@/sdk/types";
-import { CreatePartnerBankFormLegacy } from "./create-partner-bank-form-legacy";
 import { useToast } from "@/hooks/use-toast";
 
 interface PartnerBanksTableProps {
@@ -47,7 +39,7 @@ export function PartnerBanksTable({ onEdit, onView, setShowCreateDialog, showCre
   const handleDelete = async (partnerBank: PartnerBank) => {
     if (window.confirm(`Are you sure you want to delete partner bank ${partnerBank.name}?`)) {
       try {
-        await deletePartnerBank(partnerBank.id);
+        await deletePartnerBank(partnerBank.uuid);
         toast({
           title: "Success",
           description: "Partner bank deleted successfully",
@@ -62,20 +54,6 @@ export function PartnerBanksTable({ onEdit, onView, setShowCreateDialog, showCre
     }
   };
 
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case "ACTIVE":
-        return "default";
-      case "INACTIVE":
-        return "secondary";
-      case "SUSPENDED":
-        return "destructive";
-      case "PENDING":
-        return "outline";
-      default:
-        return "outline";
-    }
-  };
 
   if (loading) {
     return (
@@ -92,10 +70,10 @@ export function PartnerBanksTable({ onEdit, onView, setShowCreateDialog, showCre
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>Code</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Country</TableHead>
-              <TableHead>Contact Email</TableHead>
+              <TableHead>Slug</TableHead>
+              <TableHead>Commission Ratio</TableHead>
+              <TableHead>Devices</TableHead>
+              <TableHead>Merchants</TableHead>
               <TableHead>Created At</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
@@ -109,18 +87,24 @@ export function PartnerBanksTable({ onEdit, onView, setShowCreateDialog, showCre
               </TableRow>
             ) : (
               partnerBanks.map((partnerBank) => (
-                <TableRow key={partnerBank.id}>
+                <TableRow key={partnerBank.uuid}>
                   <TableCell className="font-medium">
                     {partnerBank.name}
                   </TableCell>
-                  <TableCell>{partnerBank.code}</TableCell>
+                  <TableCell>{partnerBank.slug || '-'}</TableCell>
                   <TableCell>
-                    <Badge variant={getStatusBadgeVariant(partnerBank.status)}>
-                      {partnerBank.status}
+                    {partnerBank.commissionRatio ? `${(partnerBank.commissionRatio * 100).toFixed(1)}%` : '-'}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">
+                      {partnerBank.devices?.length || 0} devices
                     </Badge>
                   </TableCell>
-                  <TableCell>{partnerBank.country}</TableCell>
-                  <TableCell>{partnerBank.contactEmail || "-"}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">
+                      {partnerBank.merchants?.length || 0} merchants
+                    </Badge>
+                  </TableCell>
                   <TableCell>
                     {new Date(partnerBank.createdAt).toLocaleDateString()}
                   </TableCell>

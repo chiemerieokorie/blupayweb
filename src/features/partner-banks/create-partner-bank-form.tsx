@@ -19,6 +19,7 @@ import { usePartnerBanks } from "./hooks";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { CreatePartnerBankFormDto } from "@/sdk/types";
+import { BankSelect } from "@/components/dropdowns";
 
 const createPartnerBankSchema = z.object({
   name: z.string().min(2, "Bank name must be at least 2 characters"),
@@ -200,9 +201,14 @@ export function CreatePartnerBankForm({ onSuccess }: CreatePartnerBankFormProps)
             name="commissionBank"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Commission Bank UUID</FormLabel>
+                <FormLabel>Commission Bank</FormLabel>
                 <FormControl>
-                  <Input placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" {...field} />
+                  <BankSelect
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    placeholder="Select commission bank..."
+                    className="w-full"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -213,9 +219,14 @@ export function CreatePartnerBankForm({ onSuccess }: CreatePartnerBankFormProps)
             name="settlementBank"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Settlement Bank UUID</FormLabel>
+                <FormLabel>Settlement Bank</FormLabel>
                 <FormControl>
-                  <Input placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" {...field} />
+                  <BankSelect
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    placeholder="Select settlement bank..."
+                    className="w-full"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

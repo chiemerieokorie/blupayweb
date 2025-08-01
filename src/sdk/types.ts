@@ -190,41 +190,41 @@ export interface Customer {
   phoneNumber: string;
 }
 
-export type DeviceStatus = 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE' | 'ASSIGNED';
+export type DeviceStatus = 'SUBMITTED' | 'ALLOCATED' | 'BLOCKED' | 'REMOVED';
 export type DeviceType = 'POS' | 'ATM' | 'MOBILE';
 export type PartnerBankStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'PENDING';
 
 export interface Device {
-  id: string;
-  serialNumber: string;
-  deviceType: DeviceType;
-  model: string;
-  manufacturer: string;
+  uuid: string;
+  deviceId: string;
   status: DeviceStatus;
+  merchantUuid?: string;
+  merchant?: Merchant;
+  assignedTo?: PartnerBank;
+  transactions?: Transaction[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Terminal {
+  id: string;
+  terminalId: string;
+  serialNo: string;
+  active: boolean;
   location?: string;
   partnerBankId?: string;
   merchantId?: string;
-  description?: string;
-  lastActivity?: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface PartnerBank {
-  id: string;
+  uuid: string;
   name: string;
-  code: string;
-  country: string;
-  status: PartnerBankStatus;
-  contactEmail?: string;
-  contactPhone?: string;
-  address?: string;
-  description?: string;
-  swiftCode?: string;
-  routingNumber?: string;
+  slug?: string;
   commissionRatio?: number;
-  settlementBank?: Record<string, unknown>;
-  commissionBank?: Record<string, unknown>;
+  settlementBank?: string | Record<string, unknown>;
+  commissionBank?: string | Record<string, unknown>;
   fileHeaders?: string[];
   devices?: Device[];
   merchants?: Merchant[];
@@ -371,6 +371,23 @@ export interface UpdateDeviceDto {
   partnerBankId?: string;
   merchantId?: string;
   description?: string;
+}
+
+export interface CreateTerminalDto {
+  terminalId: string;
+  serialNo: string;
+  location?: string;
+  partnerBankId?: string;
+  merchantId?: string;
+}
+
+export interface UpdateTerminalDto {
+  terminalId?: string;
+  serialNo?: string;
+  active?: boolean;
+  location?: string;
+  partnerBankId?: string;
+  merchantId?: string;
 }
 
 // Partner Bank Types (extended)

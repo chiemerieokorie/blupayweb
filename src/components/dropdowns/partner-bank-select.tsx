@@ -36,12 +36,7 @@ export function PartnerBankSelect({
       setLoading(true);
       try {
         const response = await partnerBankService.getPartnerBanks();
-        let banks = response.data || [];
-        
-        if (showActiveOnly) {
-          banks = banks.filter(bank => bank.status === 'ACTIVE');
-        }
-        
+        const banks = response.data || [];
         setPartnerBanks(banks);
       } catch (error) {
         console.error('Failed to fetch partner banks:', error);
@@ -58,28 +53,12 @@ export function PartnerBankSelect({
     if (!searchValue) return partnerBanks;
     return partnerBanks.filter(bank =>
       bank.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-      bank.code.toLowerCase().includes(searchValue.toLowerCase()) ||
-      bank.country.toLowerCase().includes(searchValue.toLowerCase()) ||
-      (bank.swiftCode && bank.swiftCode.toLowerCase().includes(searchValue.toLowerCase()))
+      (bank.slug && bank.slug.toLowerCase().includes(searchValue.toLowerCase()))
     );
   }, [partnerBanks, searchValue]);
 
-  const selectedPartnerBank = partnerBanks.find((bank) => bank.id === value);
+  const selectedPartnerBank = partnerBanks.find((bank) => bank.uuid === value);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'ACTIVE':
-        return 'text-green-600 bg-green-50';
-      case 'INACTIVE':
-        return 'text-gray-600 bg-gray-50';
-      case 'SUSPENDED':
-        return 'text-red-600 bg-red-50';
-      case 'PENDING':
-        return 'text-yellow-600 bg-yellow-50';
-      default:
-        return 'text-gray-600 bg-gray-50';
-    }
-  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -88,14 +67,14 @@ export function PartnerBankSelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn("justify-between", className)}
+          className={cn("w-full justify-between", className)}
           disabled={disabled || loading}
         >
           <div className="flex items-center gap-2">
             <Building2 className="h-4 w-4 text-muted-foreground" />
             {selectedPartnerBank ? (
               <span className="truncate">
-                {selectedPartnerBank.name} ({selectedPartnerBank.code})
+                {selectedPartnerBank.name} {selectedPartnerBank.slug ? `(${selectedPartnerBank.slug})` : ''}
               </span>
             ) : (
               <span className="text-muted-foreground">{placeholder}</span>
@@ -110,15 +89,11 @@ export function PartnerBankSelect({
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0">
         <Command>
-          <div className="flex items-center border-b px-3">
-            <Search className="h-4 w-4 shrink-0 opacity-50" />
-            <CommandInput
-              placeholder="Search partner banks..."
-              value={searchValue}
-              onValueChange={setSearchValue}
-              className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
-            />
-          </div>
+          <CommandInput
+            placeholder="Search partner banks..."
+            value={searchValue}
+            onValueChange={setSearchValue}
+          />
           <CommandList>
             <CommandEmpty>
               {loading ? "Loading partner banks..." : "No partner banks found."}
@@ -126,8 +101,8 @@ export function PartnerBankSelect({
             <CommandGroup>
               {filteredPartnerBanks.map((bank) => (
                 <CommandItem
-                  key={bank.id}
-                  value={bank.id}
+                  key={bank.uuid}
+                  value={bank.uuid}
                   onSelect={(currentValue) => {
                     onValueChange(currentValue === value ? "" : currentValue);
                     setOpen(false);
@@ -139,15 +114,19 @@ export function PartnerBankSelect({
                     <div className="flex flex-col">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{bank.name}</span>
-                        <span className="text-xs text-muted-foreground px-1.5 py-0.5 bg-muted rounded">
-                          {bank.code}
-                        </span>
-                        <span className={cn("text-xs px-1.5 py-0.5 rounded", getStatusColor(bank.status))}>
-                          {bank.status}
-                        </span>
+                        {bank.slug && (
+                          <span className="text-xs text-muted-foreground px-1.5 py-0.5 bg-muted rounded">
+                            {bank.slug}
+                          </span>
+                        )}
+                        {bank.commissionRatio && (
+                          <span className="text-xs text-blue-600 px-1.5 py-0.5 bg-blue-50 rounded">
+                            {(bank.commissionRatio * 100).toFixed(1)}%
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>{bank.country}</span>
+                        <span>Commission: {bank.commissionRatio ? `${(bank.commissionRatio * 100).toFixed(1)}%` : 'N/A'}</span>
                         {bank.swiftCode && (
                           <>
                             <span>•</span>
@@ -160,7 +139,7 @@ export function PartnerBankSelect({
                   <Check
                     className={cn(
                       "ml-auto h-4 w-4",
-                      value === bank.id ? "opacity-100" : "opacity-0"
+                      value === bank.uuid ? "opacity-100" : "opacity-0"
                     )}
                   />
                 </CommandItem>

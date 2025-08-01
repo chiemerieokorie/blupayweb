@@ -77,7 +77,7 @@ export function MerchantSelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn("justify-between", className)}
+          className={cn("w-full justify-between", className)}
           disabled={disabled || loading}
         >
           <div className="flex items-center gap-2">
@@ -99,15 +99,11 @@ export function MerchantSelect({
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0">
         <Command>
-          <div className="flex items-center border-b px-3">
-            <Search className="h-4 w-4 shrink-0 opacity-50" />
-            <CommandInput
-              placeholder="Search merchants..."
-              value={searchValue}
-              onValueChange={setSearchValue}
-              className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
-            />
-          </div>
+          <CommandInput
+            placeholder="Search merchants..."
+            value={searchValue}
+            onValueChange={setSearchValue}
+          />
           <CommandList>
             <CommandEmpty>
               {loading ? "Loading merchants..." : "No merchants found."}

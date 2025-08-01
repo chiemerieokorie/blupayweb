@@ -33,7 +33,7 @@ describe('ApiClient', () => {
     it('returns data on successful response', async () => {
       const mockData = { id: 1, name: 'Test User' };
       const mockResponse: ApiResponse<typeof mockData> = {
-        status: true,
+        status: 'success',
         message: 'Success',
         data: mockData,
         statusCode: 200,
@@ -48,7 +48,7 @@ describe('ApiClient', () => {
 
     it('throws ApiError on failed response status', async () => {
       const mockResponse: ApiResponse<null> = {
-        status: false,
+        status: 'error',
         message: 'User not found',
         data: null,
         statusCode: 404,
@@ -81,7 +81,7 @@ describe('ApiClient', () => {
       const postData = { name: 'New User', email: 'test@example.com' };
       const responseData = { id: 1, ...postData };
       const mockResponse: ApiResponse<typeof responseData> = {
-        status: true,
+        status: 'success',
         message: 'User created',
         data: responseData,
         statusCode: 201,

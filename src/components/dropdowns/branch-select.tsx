@@ -1,64 +1,12 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Check, ChevronsUpDown, Search, MapPin, Loader2 } from 'lucide-react';
+import { Check, ChevronsUpDown, MapPin, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-
-// Mock branch data - replace with actual API when available
-const MOCK_BRANCHES = [
-  {
-    id: 'br1e1e1e-1e1e-1e1e-1e1e-1e1e1e1e1e1e',
-    name: 'Accra Main Branch',
-    code: 'ACC-MAIN',
-    address: 'High Street, Accra',
-    city: 'Accra',
-    bankId: 'b1e1e1e1-1e1e-1e1e-1e1e-1e1e1e1e1e1e'
-  },
-  {
-    id: 'br2e2e2e-2e2e-2e2e-2e2e-2e2e2e2e2e2e',
-    name: 'Kumasi Branch',
-    code: 'KUM-001',
-    address: 'Kejetia Market, Kumasi',
-    city: 'Kumasi',
-    bankId: 'b1e1e1e1-1e1e-1e1e-1e1e-1e1e1e1e1e1e'
-  },
-  {
-    id: 'br3e3e3e-3e3e-3e3e-3e3e-3e3e3e3e3e3e',
-    name: 'Tema Branch',
-    code: 'TEM-001',
-    address: 'Community 1, Tema',
-    city: 'Tema',
-    bankId: 'b1e1e1e1-1e1e-1e1e-1e1e-1e1e1e1e1e1e'
-  },
-  {
-    id: 'br4e4e4e-4e4e-4e4e-4e4e-4e4e4e4e4e4e',
-    name: 'East Legon Branch',
-    code: 'EL-001',
-    address: 'East Legon Road, Accra',
-    city: 'Accra',
-    bankId: 'b2e2e2e2-2e2e-2e2e-2e2e-2e2e2e2e2e2e'
-  },
-  {
-    id: 'br5e5e5e-5e5e-5e5e-5e5e-5e5e5e5e5e5e',
-    name: 'Airport Branch',
-    code: 'APT-001',
-    address: 'Airport Residential Area, Accra',
-    city: 'Accra',
-    bankId: 'b2e2e2e2-2e2e-2e2e-2e2e-2e2e2e2e2e2e'
-  }
-];
-
-interface Branch {
-  id: string;
-  name: string;
-  code: string;
-  address: string;
-  city: string;
-  bankId: string;
-}
+import { bankService, type Branch } from '@/sdk/banks';
 
 interface BranchSelectProps {
   value?: string;
@@ -86,15 +34,8 @@ export function BranchSelect({
     const fetchBranches = async () => {
       setLoading(true);
       try {
-        // TODO: Replace with actual API call when available
-        // const response = await branchService.getBranches({ bankId });
-        // setBranches(response.data);
-        
-        // Mock implementation
-        const filteredBranches = bankId 
-          ? MOCK_BRANCHES.filter(branch => branch.bankId === bankId)
-          : MOCK_BRANCHES;
-        setBranches(filteredBranches);
+        const branchesData = await bankService.getBranches(bankId);
+        setBranches(branchesData);
       } catch (error) {
         console.error('Failed to fetch branches:', error);
         setBranches([]);
@@ -110,13 +51,12 @@ export function BranchSelect({
     if (!searchValue) return branches;
     return branches.filter(branch =>
       branch.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-      branch.code.toLowerCase().includes(searchValue.toLowerCase()) ||
-      branch.city.toLowerCase().includes(searchValue.toLowerCase()) ||
-      branch.address.toLowerCase().includes(searchValue.toLowerCase())
+      (branch.code && branch.code.toLowerCase().includes(searchValue.toLowerCase())) ||
+      (branch.bankId && branch.bankId.toLowerCase().includes(searchValue.toLowerCase()))
     );
   }, [branches, searchValue]);
 
-  const selectedBranch = branches.find((branch) => branch.id === value);
+  const selectedBranch = branches.find((branch) => branch.uuid === value);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -125,7 +65,7 @@ export function BranchSelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn("justify-between", className)}
+          className={cn("w-full justify-between", className)}
           disabled={disabled || loading || !bankId}
         >
           <div className="flex items-center gap-2">
@@ -149,15 +89,11 @@ export function BranchSelect({
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0">
         <Command>
-          <div className="flex items-center border-b px-3">
-            <Search className="h-4 w-4 shrink-0 opacity-50" />
-            <CommandInput
-              placeholder="Search branches..."
-              value={searchValue}
-              onValueChange={setSearchValue}
-              className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
-            />
-          </div>
+          <CommandInput
+            placeholder="Search branches..."
+            value={searchValue}
+            onValueChange={setSearchValue}
+          />
           <CommandList>
             <CommandEmpty>
               {loading ? "Loading branches..." : "No branches found."}
@@ -165,8 +101,8 @@ export function BranchSelect({
             <CommandGroup>
               {filteredBranches.map((branch) => (
                 <CommandItem
-                  key={branch.id}
-                  value={branch.id}
+                  key={branch.uuid}
+                  value={branch.uuid}
                   onSelect={(currentValue) => {
                     onValueChange(currentValue === value ? "" : currentValue);
                     setOpen(false);
@@ -183,16 +119,14 @@ export function BranchSelect({
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>{branch.city}</span>
-                        <span>•</span>
-                        <span className="truncate">{branch.address}</span>
+                        <span>Bank ID: {branch.bankId}</span>
                       </div>
                     </div>
                   </div>
                   <Check
                     className={cn(
                       "ml-auto h-4 w-4",
-                      value === branch.id ? "opacity-100" : "opacity-0"
+                      value === branch.uuid ? "opacity-100" : "opacity-0"
                     )}
                   />
                 </CommandItem>

@@ -1,58 +1,12 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Check, ChevronsUpDown, Search, Landmark, Loader2 } from 'lucide-react';
+import { Check, ChevronsUpDown, Landmark, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-
-// Mock bank data - replace with actual API when available
-const MOCK_BANKS = [
-  {
-    id: 'b1e1e1e1-1e1e-1e1e-1e1e-1e1e1e1e1e1e',
-    name: 'Ghana Commercial Bank',
-    code: 'GCB',
-    swiftCode: 'GCBLGHAC',
-    country: 'Ghana'
-  },
-  {
-    id: 'b2e2e2e2-2e2e-2e2e-2e2e-2e2e2e2e2e2e',
-    name: 'Ecobank Ghana',
-    code: 'ECO',
-    swiftCode: 'ECOCGHAC',
-    country: 'Ghana'
-  },
-  {
-    id: 'b3e3e3e3-3e3e-3e3e-3e3e-3e3e3e3e3e3e',
-    name: 'Standard Chartered Bank',
-    code: 'SCB',
-    swiftCode: 'SCBLGHAC',
-    country: 'Ghana'
-  },
-  {
-    id: 'b4e4e4e4-4e4e-4e4e-4e4e-4e4e4e4e4e4e',
-    name: 'Fidelity Bank Ghana',
-    code: 'FBG',
-    swiftCode: 'FBLIGHAC',
-    country: 'Ghana'
-  },
-  {
-    id: 'b5e5e5e5-5e5e-5e5e-5e5e-5e5e5e5e5e5e',
-    name: 'Access Bank Ghana',
-    code: 'ABG',
-    swiftCode: 'ABCLGHAC',
-    country: 'Ghana'
-  }
-];
-
-interface Bank {
-  id: string;
-  name: string;
-  code: string;
-  swiftCode?: string;
-  country: string;
-}
+import { bankService, type Bank } from '@/sdk/banks';
 
 interface BankSelectProps {
   value?: string;
@@ -80,15 +34,9 @@ export function BankSelect({
     const fetchBanks = async () => {
       setLoading(true);
       try {
-        // TODO: Replace with actual API call when available
-        // const response = await bankService.getBanks({ country });
-        // setBanks(response.data);
-        
-        // Mock implementation
-        const filteredBanks = MOCK_BANKS.filter(bank => 
-          bank.country.toLowerCase() === country.toLowerCase()
-        );
-        setBanks(filteredBanks);
+        const params = country ? { country } : undefined;
+        const banksData = await bankService.getBanks(params);
+        setBanks(banksData);
       } catch (error) {
         console.error('Failed to fetch banks:', error);
         setBanks([]);
@@ -109,7 +57,7 @@ export function BankSelect({
     );
   }, [banks, searchValue]);
 
-  const selectedBank = banks.find((bank) => bank.id === value);
+  const selectedBank = banks.find((bank) => bank.uuid === value);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -118,7 +66,7 @@ export function BankSelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn("justify-between", className)}
+          className={cn("w-full justify-between", className)}
           disabled={disabled || loading}
         >
           <div className="flex items-center gap-2">
@@ -140,15 +88,11 @@ export function BankSelect({
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0">
         <Command>
-          <div className="flex items-center border-b px-3">
-            <Search className="h-4 w-4 shrink-0 opacity-50" />
-            <CommandInput
-              placeholder="Search banks..."
-              value={searchValue}
-              onValueChange={setSearchValue}
-              className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
-            />
-          </div>
+          <CommandInput
+            placeholder="Search banks..."
+            value={searchValue}
+            onValueChange={setSearchValue}
+          />
           <CommandList>
             <CommandEmpty>
               {loading ? "Loading banks..." : "No banks found."}
@@ -156,8 +100,8 @@ export function BankSelect({
             <CommandGroup>
               {filteredBanks.map((bank) => (
                 <CommandItem
-                  key={bank.id}
-                  value={bank.id}
+                  key={bank.uuid}
+                  value={bank.uuid}
                   onSelect={(currentValue) => {
                     onValueChange(currentValue === value ? "" : currentValue);
                     setOpen(false);
@@ -187,7 +131,7 @@ export function BankSelect({
                   <Check
                     className={cn(
                       "ml-auto h-4 w-4",
-                      value === bank.id ? "opacity-100" : "opacity-0"
+                      value === bank.uuid ? "opacity-100" : "opacity-0"
                     )}
                   />
                 </CommandItem>

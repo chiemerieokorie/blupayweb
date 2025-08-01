@@ -60,9 +60,9 @@ export function OvaDetailsForm() {
   const form = useForm<OvaDetailsFormData>({
     resolver: zodResolver(ovaDetailsSchema),
     defaultValues: {
-      mtnOva: ovaDetails.mtnOva || { ovaUuid: '', telco: 'mtn' },
-      airtelOva: ovaDetails.airtelOva || { ovaUuid: '', telco: 'airtel' },
-      telecelOva: ovaDetails.telecelOva || { ovaUuid: '', telco: 'telecel' },
+      mtnOva: ovaDetails?.mtnOva || { ovaUuid: '', telco: 'mtn' },
+      airtelOva: ovaDetails?.airtelOva || { ovaUuid: '', telco: 'airtel' },
+      telecelOva: ovaDetails?.telecelOva || { ovaUuid: '', telco: 'telecel' },
     },
   });
 

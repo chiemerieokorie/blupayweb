@@ -10,7 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { IconReceipt, IconArrowLeft, IconArrowRight } from '@tabler/icons-react';
+import { IconReceipt, IconArrowLeft, IconArrowRight, IconCalendarEvent, IconPercentage, IconBuildingBank, IconFileInvoice, IconCash, IconCoin } from '@tabler/icons-react';
+import { PartnerBankSelect } from '@/components/dropdowns';
 import { ROUTES } from '@/lib/constants';
 import { 
   settlementDetailsSchema, 
@@ -115,12 +116,15 @@ export function SettlementDetailsForm() {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label>Settlement Frequency</Label>
+              <Label className="flex items-center gap-2">
+                <IconCalendarEvent className="h-4 w-4" />
+                Settlement Frequency
+              </Label>
               <Select
                 onValueChange={(value) => form.setValue('settlementFrequency', value as 'DAILY' | 'WEEKLY' | 'MONTHLY')}
                 defaultValue={form.watch('settlementFrequency')}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select frequency" />
                 </SelectTrigger>
                 <SelectContent>
@@ -137,12 +141,15 @@ export function SettlementDetailsForm() {
             </div>
 
             <div className="space-y-2">
-              <Label>Surcharge On</Label>
+              <Label className="flex items-center gap-2">
+                <IconPercentage className="h-4 w-4" />
+                Surcharge On
+              </Label>
               <Select
                 onValueChange={(value) => form.setValue('surcharge', value as 'Customer' | 'Merchant' | 'BOTH')}
                 defaultValue={form.watch('surcharge')}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select surcharge target" />
                 </SelectTrigger>
                 <SelectContent>
@@ -161,11 +168,16 @@ export function SettlementDetailsForm() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="partnerBank">Partner Bank UUID</Label>
-              <Input
-                id="partnerBank"
-                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                {...form.register('partnerBank')}
+              <Label htmlFor="partnerBank" className="flex items-center gap-2">
+                <IconBuildingBank className="h-4 w-4" />
+                Partner Bank
+              </Label>
+              <PartnerBankSelect
+                value={form.watch('partnerBank')}
+                onValueChange={(value) => form.setValue('partnerBank', value)}
+                placeholder="Select partner bank..."
+                className="w-full"
+                showActiveOnly={true}
               />
               {form.formState.errors.partnerBank && (
                 <p className="text-sm text-red-500">{form.formState.errors.partnerBank.message}</p>
@@ -173,12 +185,15 @@ export function SettlementDetailsForm() {
             </div>
 
             <div className="space-y-2">
-              <Label>Settlement Account Type</Label>
+              <Label className="flex items-center gap-2">
+                <IconFileInvoice className="h-4 w-4" />
+                Settlement Account Type
+              </Label>
               <Select
                 onValueChange={(value) => form.setValue('settlementAccount', value as 'PARENT_BANK' | 'MERCHANT_BANK')}
                 defaultValue={form.watch('settlementAccount')}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select account type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -201,7 +216,10 @@ export function SettlementDetailsForm() {
             
             <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="totalSurcharge">Total Surcharge (%)</Label>
+                <Label htmlFor="totalSurcharge" className="flex items-center gap-2">
+                  <IconPercentage className="h-4 w-4" />
+                  Total Surcharge (%)
+                </Label>
                 <Input
                   id="totalSurcharge"
                   type="number"
@@ -209,6 +227,7 @@ export function SettlementDetailsForm() {
                   min="0"
                   max="1.5"
                   placeholder="1.5"
+                  className="w-full"
                   {...form.register('totalSurcharge', { valueAsNumber: true })}
                 />
                 {form.formState.errors.totalSurcharge && (
@@ -217,7 +236,10 @@ export function SettlementDetailsForm() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="merchantPercentageSurcharge">Merchant Surcharge (%)</Label>
+                <Label htmlFor="merchantPercentageSurcharge" className="flex items-center gap-2">
+                  <IconCoin className="h-4 w-4" />
+                  Merchant Surcharge (%)
+                </Label>
                 <Input
                   id="merchantPercentageSurcharge"
                   type="number"
@@ -226,6 +248,7 @@ export function SettlementDetailsForm() {
                   max="1.5"
                   placeholder="0.00"
                   disabled={surchargeType !== 'BOTH'}
+                  className="w-full"
                   {...form.register('merchantPercentageSurcharge', { valueAsNumber: true })}
                 />
                 {form.formState.errors.merchantPercentageSurcharge && (
@@ -234,7 +257,10 @@ export function SettlementDetailsForm() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="customerPercentageSurcharge">Customer Surcharge (%)</Label>
+                <Label htmlFor="customerPercentageSurcharge" className="flex items-center gap-2">
+                  <IconCash className="h-4 w-4" />
+                  Customer Surcharge (%)
+                </Label>
                 <Input
                   id="customerPercentageSurcharge"
                   type="number"
@@ -243,6 +269,7 @@ export function SettlementDetailsForm() {
                   max="1.5"
                   placeholder="0.00"
                   disabled={surchargeType !== 'BOTH'}
+                  className="w-full"
                   {...form.register('customerPercentageSurcharge', { valueAsNumber: true })}
                 />
                 {form.formState.errors.customerPercentageSurcharge && (
