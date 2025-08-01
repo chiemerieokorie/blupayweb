@@ -21,8 +21,7 @@ export const ROUTES = {
     TRANSACTIONS: {
         INDEX: '/transactions',
         CREATE: '/transactions/create',
-        EDIT: (id: string) => `/transactions/edit/${id}`,
-        VIEW: (id: string) => `/transactions/view/${id}`,
+        VIEW: (id: string) => `/transactions/${id}`,
     },
     COMMISSIONS: {
         INDEX: '/commissions',
