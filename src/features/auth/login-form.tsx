@@ -28,10 +28,12 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 const partnerBanks = [
-  { value: 'gcb', label: 'GCB Bank' },
-  { value: 'boa', label: 'Bank of Africa' },
-  { value: 'zenith', label: 'Zenith Bank' },
+  { value: 'access', label: 'Access Bank' },
+  { value: 'fab', label: 'First Atlantic Bank' },
+  { value: 'fidelity', label: 'Fidelity Bank' },
   { value: 'stanbic', label: 'Stanbic Bank' },
+  { value: 'blupenguin', label: 'Blu Penguin' },
+  { value: 'blupay', label: 'BluPay' },
 ];
 
 export function LoginForm() {
