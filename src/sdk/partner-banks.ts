@@ -11,7 +11,18 @@ export const partnerBankService = {
       sortOrder: params.sortOrder
     } : undefined;
     
-    return await apiClient.get('/banks/partners', apiParams);
+    const data = await apiClient.get<PartnerBank[]>('/banks/partners', apiParams);
+    
+    // Transform the direct array response into PaginatedResponse format
+    return {
+      data: data || [],
+      meta: {
+        page: params?.page as number || 1,
+        perPage: params?.limit as number || 10,
+        total: (data || []).length, // We don't have total from API, so use current page length
+        totalPages: 1 // We don't have total pages from API
+      }
+    };
   },
 
   async getPartnerBank(id: string): Promise<PartnerBank> {

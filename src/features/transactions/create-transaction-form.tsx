@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, CreditCard, Smartphone } from 'lucide-react';
 import { useCreateTransaction } from './hooks';
 import { CreateTransactionDto } from '@/sdk/types';
+import { MerchantSelect } from '@/components/dropdowns';
 
 const createTransactionSchema = z.object({
   merchantId: z.string().uuid('Merchant ID must be a valid UUID'),
@@ -157,15 +158,16 @@ export function CreateTransactionForm({ onSuccess, onCancel }: CreateTransaction
             </div>
           </div>
 
-          {/* Merchant ID and Surcharge */}
+          {/* Merchant and Surcharge */}
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="merchantId">Merchant ID</Label>
-              <Input
-                id="merchantId"
-                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                {...form.register('merchantId')}
+              <Label htmlFor="merchantId">Merchant</Label>
+              <MerchantSelect
+                value={form.watch('merchantId')}
+                onValueChange={(value) => form.setValue('merchantId', value)}
                 disabled={loading}
+                placeholder="Select merchant..."
+                className="w-full"
               />
               {form.formState.errors.merchantId && (
                 <p className="text-sm text-red-500">{form.formState.errors.merchantId.message}</p>

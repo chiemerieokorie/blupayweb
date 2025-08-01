@@ -30,8 +30,12 @@ interface WalletFundRequest {
 }
 
 export class TransactionsService {
-  async getTransactionById(id: string): Promise<Transaction> {
-    return apiClient.get(`/transactions/${id}`);
+  async getTransactionById(transactionRef: string): Promise<Transaction> {
+    return apiClient.get(`/transactions/${transactionRef}/view`);
+  }
+
+  async getTransactionStatus(transactionRef: string): Promise<any> {
+    return apiClient.get(`/transactions/${transactionRef}/view`);
   }
 
   async createTransaction(data: TransactionRequest): Promise<Transaction> {
@@ -39,7 +43,18 @@ export class TransactionsService {
   }
 
   async getTransactions(filters: TransactionFilters): Promise<PaginatedResponse<Transaction>> {
-    return apiClient.get('/transactions', filters);
+    const data = await apiClient.get<Transaction[]>('/transactions', filters);
+    
+    // Transform the direct array response into PaginatedResponse format
+    return {
+      data: data || [],
+      meta: {
+        page: filters.page || 1,
+        perPage: filters.limit || 10,
+        total: (data || []).length, // We don't have total from API, so use current page length
+        totalPages: 1 // We don't have total pages from API
+      }
+    };
   }
 
   async updateTransaction(id: string, data: Partial<Transaction>): Promise<Transaction> {
@@ -50,8 +65,12 @@ export class TransactionsService {
     return apiClient.delete(`/transactions/${id}`);
   }
 
-  async reverseTransaction(id: string): Promise<Transaction> {
-    return apiClient.post(`/transactions/${id}/reverse`);
+  async reverseTransaction(transactionRef: string, otpData?: { otp: string; requestedFor: string }): Promise<Transaction> {
+    return apiClient.post(`/transactions/${transactionRef}/reverse`, otpData || {});
+  }
+
+  async reQueryTransaction(transactionRef: string): Promise<any> {
+    return apiClient.get(`/transactions/${transactionRef}/re-query`);
   }
 
   async getAnalytics(filters: { 

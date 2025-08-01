@@ -13,7 +13,7 @@ export const commissionService = {
         meta: {
           total: 0,
           page: params?.page as number || 1,
-          limit: params?.limit as number || 10,
+          perPage: params?.perPage as number || 10,
           totalPages: 0
         }
       };

@@ -27,6 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { UserRoleEnum } from "@/sdk/types";
 import { IconPlus, IconRefresh } from "@tabler/icons-react";
 import { getAllRoles, getRoleIcon } from "@/lib/user-roles";
+import { PartnerBankSelect } from "@/components/dropdowns";
 
 const createUserSchema = z.object({
   firstName: z.string()
@@ -347,9 +348,15 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
               name="partnerBankId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Partner Bank ID (Optional)</FormLabel>
+                  <FormLabel>Partner Bank (Optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter partner bank ID" {...field} />
+                    <PartnerBankSelect
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Select partner bank..."
+                      className="w-full"
+                      showActiveOnly={true}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

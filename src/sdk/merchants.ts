@@ -11,7 +11,18 @@ import {
 export class MerchantsService {
   async getAllMerchants(filters?: Record<string, unknown>): Promise<PaginatedResponse<Merchant>> {
     try {
-      return await apiClient.get('/merchants', { params: filters });
+      const data = await apiClient.get<Merchant[]>('/merchants', filters);
+      
+      // Transform the direct array response into PaginatedResponse format
+      return {
+        data: data || [],
+        meta: {
+          page: filters?.page as number || 1,
+          perPage: filters?.perPage as number || 10,
+          total: (data || []).length, // We don't have total from API, so use current page length
+          totalPages: 1 // We don't have total pages from API
+        }
+      };
     } catch (error) {
       console.warn('Merchants endpoint not available, returning mock data:', error);
       return {
@@ -19,7 +30,7 @@ export class MerchantsService {
         meta: {
           total: 0,
           page: filters?.page as number || 1,
-          limit: filters?.limit as number || 10,
+          perPage: filters?.perPage as number || 10,
           totalPages: 0
         }
       };

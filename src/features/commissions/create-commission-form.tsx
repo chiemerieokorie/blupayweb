@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { useCommissions } from "./hooks";
 import { useToast } from "@/hooks/use-toast";
+import { MerchantSelect, PartnerBankSelect } from "@/components/dropdowns";
 
 const createCommissionSchema = z.object({
   type: z.enum(["PERCENTAGE", "FIXED", "TIERED"]),
@@ -238,9 +239,14 @@ export function CreateCommissionForm({ onSuccess }: CreateCommissionFormProps) {
             name="merchantId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Merchant ID (Optional)</FormLabel>
+                <FormLabel>Merchant (Optional)</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter merchant ID" {...field} />
+                  <MerchantSelect
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    placeholder="Select merchant..."
+                    className="w-full"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -253,9 +259,15 @@ export function CreateCommissionForm({ onSuccess }: CreateCommissionFormProps) {
           name="partnerBankId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Partner Bank ID (Optional)</FormLabel>
+              <FormLabel>Partner Bank (Optional)</FormLabel>
               <FormControl>
-                <Input placeholder="Enter partner bank ID" {...field} />
+                <PartnerBankSelect
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  placeholder="Select partner bank..."
+                  className="w-full"
+                  showActiveOnly={true}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

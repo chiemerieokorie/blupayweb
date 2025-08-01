@@ -295,7 +295,7 @@ export function validateApiResponse<T>(
   context: ErrorContext,
   fallbackMessage: string
 ): T {
-  if (response.status && response.data !== null && response.data !== undefined) {
+  if (response.status === 'success' && response.data !== null && response.data !== undefined) {
     return response.data;
   }
 

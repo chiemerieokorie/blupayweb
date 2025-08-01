@@ -1,9 +1,9 @@
 export interface ApiResponse<T = unknown> {
-  status: boolean;
+  status: string;
   message: string;
   data: T;
   total?: number;
-  statusCode: number;
+  statusCode?: number;
 }
 
 export interface PaginatedResponse<T> {

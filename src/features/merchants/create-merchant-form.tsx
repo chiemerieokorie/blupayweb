@@ -14,6 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { Building2 } from 'lucide-react';
 import { useCreateMerchant } from './hooks';
 import { ExtendedCreateMerchantDto } from '@/sdk/types';
+import { TerminalSelect, PartnerBankSelect, BankSelect, BranchSelect } from '@/components/dropdowns';
 
 const createMerchantSchema = z.object({
   // Merchant Type
@@ -365,12 +366,13 @@ export function CreateMerchantForm({ onSuccess, onCancel }: CreateMerchantFormPr
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="terminal">Terminal UUID</Label>
-                <Input
-                  id="terminal"
-                  placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                  {...form.register('terminal')}
+                <Label htmlFor="terminal">Terminal</Label>
+                <TerminalSelect
+                  value={form.watch('terminal')}
+                  onValueChange={(value) => form.setValue('terminal', value)}
                   disabled={loading}
+                  placeholder="Select terminal..."
+                  className="w-full"
                 />
                 {form.formState.errors.terminal && (
                   <p className="text-sm text-red-500">{form.formState.errors.terminal.message}</p>
@@ -536,12 +538,14 @@ export function CreateMerchantForm({ onSuccess, onCancel }: CreateMerchantFormPr
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="parentBank">Parent Bank UUID</Label>
-                <Input
-                  id="parentBank"
-                  placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                  {...form.register('parentBank')}
+                <Label htmlFor="parentBank">Parent Bank</Label>
+                <PartnerBankSelect
+                  value={form.watch('parentBank')}
+                  onValueChange={(value) => form.setValue('parentBank', value)}
                   disabled={loading}
+                  placeholder="Select parent bank..."
+                  className="w-full"
+                  showActiveOnly={true}
                 />
                 {form.formState.errors.parentBank && (
                   <p className="text-sm text-red-500">{form.formState.errors.parentBank.message}</p>
@@ -712,12 +716,19 @@ export function CreateMerchantForm({ onSuccess, onCancel }: CreateMerchantFormPr
             
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="bankId">Bank UUID</Label>
-                <Input
-                  id="bankId"
-                  placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                  {...form.register('bankId')}
+                <Label htmlFor="bankId">Bank</Label>
+                <BankSelect
+                  value={form.watch('bankId')}
+                  onValueChange={(value) => {
+                    form.setValue('bankId', value);
+                    // Clear branch when bank changes
+                    if (form.watch('branch')) {
+                      form.setValue('branch', '');
+                    }
+                  }}
                   disabled={loading}
+                  placeholder="Select bank..."
+                  className="w-full"
                 />
                 {form.formState.errors.bankId && (
                   <p className="text-sm text-red-500">{form.formState.errors.bankId.message}</p>
@@ -725,12 +736,14 @@ export function CreateMerchantForm({ onSuccess, onCancel }: CreateMerchantFormPr
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="branch">Branch UUID</Label>
-                <Input
-                  id="branch"
-                  placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                  {...form.register('branch')}
-                  disabled={loading}
+                <Label htmlFor="branch">Branch</Label>
+                <BranchSelect
+                  value={form.watch('branch')}
+                  onValueChange={(value) => form.setValue('branch', value)}
+                  disabled={loading || !form.watch('bankId')}
+                  placeholder="Select branch..."
+                  className="w-full"
+                  bankId={form.watch('bankId')}
                 />
                 {form.formState.errors.branch && (
                   <p className="text-sm text-red-500">{form.formState.errors.branch.message}</p>

@@ -1,9 +1,15 @@
 import { apiClient } from './client';
-import { User, CreateUserDto, UpdateUserDto, ApiResponse } from './types';
+import { User, CreateUserDto, UpdateUserDto } from './types';
 
 export const userService = {
-  async getUsers(params?: Record<string, unknown>): Promise<ApiResponse<User[]>> {
-    return apiClient.get('/users', params);
+  async getUsers(params?: Record<string, unknown>): Promise<{data: User[], total: number}> {
+    const data = await apiClient.get<User[]>('/users', params);
+    
+    // Transform the direct array response into expected format
+    return {
+      data: data || [],
+      total: (data || []).length // We don't have total from API, so use current page length
+    };
   },
 
   async getUser(id: string): Promise<User> {

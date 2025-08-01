@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/dialog";
 import { usePartnerBanks, useSelectedPartnerBank } from "./hooks";
 import { PartnerBank } from "@/sdk/types";
-import { CreatePartnerBankForm } from "./create-partner-bank-form";
+import { CreatePartnerBankFormLegacy } from "./create-partner-bank-form-legacy";
 import { useToast } from "@/hooks/use-toast";
 
 interface PartnerBanksTableProps {
@@ -169,18 +169,6 @@ export function PartnerBanksTable({ onEdit, onView, setShowCreateDialog, showCre
           </TableBody>
         </Table>
       </div>
-
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Add New Partner Bank</DialogTitle>
-            <DialogDescription>
-              Register a new partner bank in the system.
-            </DialogDescription>
-          </DialogHeader>
-          <CreatePartnerBankForm onSuccess={() => setShowCreateDialog(false)} />
-        </DialogContent>
-      </Dialog>
     </>
   );
 }

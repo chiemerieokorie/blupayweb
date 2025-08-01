@@ -104,6 +104,7 @@ import {
 } from "./atoms"
 import { useAuth } from '@/features/auth/hooks'
 import { getProcessorConfig, getTransactionStatusConfig } from "./constants"
+import { TransactionDetailDrawer } from './transaction-detail-drawer'
 
 // Create a sortable header component for column reordering
 function SortableHeader({ id, children }: { id: string; children: React.ReactNode }) {
@@ -165,7 +166,7 @@ const getProcessorLogo = (processor: string) => {
   return processorConfig.logoPath || '/logos/default.png';
 };
 
-const createColumns = (columnOrder: string[]): ColumnDef<Transaction>[] => {
+const createColumns = (columnOrder: string[], onViewTransaction: (transactionRef: string) => void): ColumnDef<Transaction>[] => {
   const allColumns: Record<string, ColumnDef<Transaction>> = {
     select: {
       id: "select",
@@ -434,26 +435,34 @@ const createColumns = (columnOrder: string[]): ColumnDef<Transaction>[] => {
     },
     actions: {
       id: "actions",
-      cell: () => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
-              size="icon"
-            >
-              <IconDotsVertical />
-              <span className="sr-only">Open menu</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-32">
-            <DropdownMenuItem>View Details</DropdownMenuItem>
-            <DropdownMenuItem>Download Receipt</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive">Dispute</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
+      cell: ({ row }) => {
+        const transaction = row.original;
+        
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
+                size="icon"
+              >
+                <IconDotsVertical />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-32">
+              <DropdownMenuItem 
+                onClick={() => onViewTransaction(transaction.transactionRef)}
+              >
+                View Details
+              </DropdownMenuItem>
+              <DropdownMenuItem>Download Receipt</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="destructive">Dispute</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
     },
   };
 
@@ -520,13 +529,20 @@ export function TransactionsTable() {
     'select', 'customer', 'date', 'tid', 'processor', 'reference', 
     'amount', 'status', 'type', 'surcharge', 'description', 'actions'
   ])
+  const [selectedTransactionRef, setSelectedTransactionRef] = React.useState<string | null>(null)
+  const [drawerOpen, setDrawerOpen] = React.useState(false)
 
   const sortableId = React.useId()
   const sensors = useSensors(
     useSensor(MouseSensor, {})
   )
   
-  const columns = React.useMemo(() => createColumns(columnOrder), [columnOrder])
+  const handleViewTransaction = (transactionRef: string) => {
+    setSelectedTransactionRef(transactionRef);
+    setDrawerOpen(true);
+  };
+  
+  const columns = React.useMemo(() => createColumns(columnOrder, handleViewTransaction), [columnOrder])
 
   // Load transactions on mount and when pagination changes
   React.useEffect(() => {
@@ -735,9 +751,25 @@ export function TransactionsTable() {
             <TableBody className="**:data-[slot=table-cell]:first:w-8">
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                  <TableRow 
+                    key={row.id} 
+                    data-state={row.getIsSelected() && "selected"}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => {
+                      const transaction = row.original;
+                      handleViewTransaction(transaction.transactionRef);
+                    }}
+                  >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
+                      <TableCell 
+                        key={cell.id}
+                        onClick={(e) => {
+                          // Don't navigate when clicking on checkbox, actions, or interactive elements
+                          if (cell.column.id === 'select' || cell.column.id === 'actions') {
+                            e.stopPropagation();
+                          }
+                        }}
+                      >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
@@ -839,6 +871,15 @@ export function TransactionsTable() {
           </div>
         </div>
       </TabsContent>
+      
+      <TransactionDetailDrawer
+        transactionRef={selectedTransactionRef}
+        open={drawerOpen}
+        onOpenChange={(open) => {
+          setDrawerOpen(open);
+          if (!open) setSelectedTransactionRef(null);
+        }}
+      />
     </Tabs>
   )
 }

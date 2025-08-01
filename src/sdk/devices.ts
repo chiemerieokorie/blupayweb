@@ -1,9 +1,15 @@
 import { apiClient } from './client';
-import { Device, CreateDeviceDto, UpdateDeviceDto, ApiResponse } from './types';
+import { Device, CreateDeviceDto, UpdateDeviceDto } from './types';
 
 export const deviceService = {
-  async getDevices(params?: Record<string, unknown>): Promise<ApiResponse<Device[]>> {
-    return apiClient.get('/devices', params);
+  async getDevices(params?: Record<string, unknown>): Promise<{data: Device[], total: number}> {
+    const data = await apiClient.get<Device[]>('/devices', params);
+    
+    // Transform the direct array response into expected format
+    return {
+      data: data || [],
+      total: (data || []).length // We don't have total from API, so use current page length
+    };
   },
 
   async getDevice(id: string): Promise<Device> {

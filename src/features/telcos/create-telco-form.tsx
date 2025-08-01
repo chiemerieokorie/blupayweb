@@ -25,6 +25,7 @@ import {
 import { useTelcos } from "./hooks";
 import { useToast } from "@/hooks/use-toast";
 import { CreateTelcoManagementDto } from "@/sdk/types";
+import { MerchantSelect } from "@/components/dropdowns";
 
 const createTelcoSchema = z.object({
   telco: z.enum(["AIRTEL", "MTN", "TIGO", "VODAFONE", "ORANGE"]),
@@ -202,9 +203,14 @@ export function CreateTelcoForm({ onSuccess }: CreateTelcoFormProps) {
           name="merchantId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Merchant ID (Optional)</FormLabel>
+              <FormLabel>Merchant (Optional)</FormLabel>
               <FormControl>
-                <Input placeholder="Enter merchant ID" {...field} />
+                <MerchantSelect
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  placeholder="Select merchant..."
+                  className="w-full"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
