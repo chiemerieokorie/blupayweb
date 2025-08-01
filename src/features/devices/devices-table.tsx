@@ -1,25 +1,8 @@
 "use client";
 
-import React, {useState} from "react";
-import {MoreHorizontal, Trash2, Edit, Eye} from "lucide-react";
-import {Badge} from "@/components/ui/badge";
-import {Button} from "@/components/ui/button";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
+import React, { useMemo } from "react";
+import { ColumnDef } from "@tanstack/react-table";
+import { Badge } from "@/components/ui/badge";
 import {
     Dialog,
     DialogContent,
@@ -27,16 +10,19 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import {
-    ColumnDef,
-    flexRender,
-    getCoreRowModel,
-    useReactTable,
-} from "@tanstack/react-table";
-import {useDevices, useSelectedDevice} from "./hooks";
-import {Device} from "@/sdk/types";
-import {CreateDeviceForm} from "./create-device-form";
-import {useToast} from "@/hooks/use-toast";
+import { StandardizedDataTable, createHeaderWithIcon } from "@/components/ui/standardized-data-table";
+import { DeviceTableActions } from "./components/device-table-row";
+import { useDevices, useSelectedDevice } from "./hooks";
+import { Device } from "@/sdk/types";
+import { CreateDeviceForm } from "./create-device-form";
+import { useToast } from "@/hooks/use-toast";
+import { 
+  IconDevices, 
+  IconStatusChange, 
+  IconUser, 
+  IconCalendar,
+  IconSettings
+} from "@tabler/icons-react";
 
 interface DevicesTableProps {
     onEdit?: (device: Device) => void;
@@ -66,6 +52,16 @@ export function DevicesTable({onEdit, onView, setShowCreateDialog, showCreateDia
                 });
             }
         }
+    };
+
+    const handleView = (device: Device) => {
+        selectDevice(device);
+        onView?.(device);
+    };
+
+    const handleEdit = (device: Device) => {
+        selectDevice(device);
+        onEdit?.(device);
     };
 
     const getStatusBadgeVariant = (status: string) => {
@@ -98,18 +94,24 @@ export function DevicesTable({onEdit, onView, setShowCreateDialog, showCreateDia
         }
     };
 
-    const columns = React.useMemo<ColumnDef<Device>[]>(
+    const columns = useMemo<ColumnDef<Device>[]>(
         () => [
             {
                 accessorKey: "serialNumber",
-                header: "TERMINAL ID",
+                header: () => createHeaderWithIcon(
+                    <IconDevices className="h-4 w-4" />,
+                    "Terminal ID"
+                ),
                 cell: ({ row }) => (
                     <div className="font-medium">{row.getValue("serialNumber")}</div>
                 ),
             },
             {
                 accessorKey: "status",
-                header: "STATUS",
+                header: () => createHeaderWithIcon(
+                    <IconStatusChange className="h-4 w-4" />,
+                    "Status"
+                ),
                 cell: ({ row }) => {
                     const status = row.getValue("status") as string;
                     return (
@@ -121,7 +123,10 @@ export function DevicesTable({onEdit, onView, setShowCreateDialog, showCreateDia
             },
             {
                 accessorKey: "merchantId",
-                header: "ALLOCATED TO",
+                header: () => createHeaderWithIcon(
+                    <IconUser className="h-4 w-4" />,
+                    "Allocated To"
+                ),
                 cell: ({ row }) => {
                     const merchantId = row.getValue("merchantId") as string;
                     return <div>{merchantId || "-"}</div>;
@@ -129,7 +134,10 @@ export function DevicesTable({onEdit, onView, setShowCreateDialog, showCreateDia
             },
             {
                 accessorKey: "createdAt",
-                header: "DATE CREATED",
+                header: () => createHeaderWithIcon(
+                    <IconCalendar className="h-4 w-4" />,
+                    "Date Created"
+                ),
                 cell: ({ row }) => {
                     const date = row.getValue("createdAt") as string;
                     return (
@@ -145,115 +153,37 @@ export function DevicesTable({onEdit, onView, setShowCreateDialog, showCreateDia
             },
             {
                 id: "actions",
-                header: "",
-                cell: ({ row }) => {
-                    const device = row.original;
-                    return (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                    onClick={() => {
-                                        selectDevice(device);
-                                        onView?.(device);
-                                    }}
-                                >
-                                    <Eye className="h-4 w-4 mr-2" />
-                                    View
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    onClick={() => {
-                                        selectDevice(device);
-                                        onEdit?.(device);
-                                    }}
-                                >
-                                    <Edit className="h-4 w-4 mr-2" />
-                                    Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                    onClick={() => handleDelete(device)}
-                                    className="text-red-600"
-                                >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Delete
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    );
-                },
+                header: () => createHeaderWithIcon(
+                    <IconSettings className="h-4 w-4" />,
+                    "Actions"
+                ),
+                cell: ({ row }) => (
+                    <DeviceTableActions
+                        device={row.original}
+                        onView={handleView}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                    />
+                ),
+                enableSorting: false,
+                enableHiding: false,
             },
         ],
-        [onEdit, onView, selectDevice]
+        [handleView, handleEdit, handleDelete]
     );
-
-    const table = useReactTable({
-        data: devices,
-        columns,
-        getCoreRowModel: getCoreRowModel(),
-    });
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            </div>
-        );
-    }
 
     return (
         <div className="space-y-4">
-            <div className="border rounded-lg">
-                <Table>
-                    <TableHeader>
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id}>
-                                        {header.isPlaceholder
-                                            ? null
-                                            : flexRender(
-                                                  header.column.columnDef.header,
-                                                  header.getContext()
-                                              )}
-                                    </TableHead>
-                                ))}
-                            </TableRow>
-                        ))}
-                    </TableHeader>
-                    <TableBody>
-                        {table.getRowModel().rows?.length ? (
-                            table.getRowModel().rows.map((row) => (
-                                <TableRow key={row.id}>
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
-                                            {flexRender(
-                                                cell.column.columnDef.cell,
-                                                cell.getContext()
-                                            )}
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={columns.length}
-                                    className="text-center py-12 text-muted-foreground"
-                                >
-                                    No devices found
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
+            <StandardizedDataTable
+                columns={columns}
+                data={devices}
+                loading={loading}
+                searchable={true}
+                searchPlaceholder="Search devices..."
+                searchKey="serialNumber"
+                emptyMessage="No devices found"
+                loadingMessage="Loading devices..."
+            />
 
             <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
                 <DialogContent className="max-w-2xl">

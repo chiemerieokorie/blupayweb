@@ -83,6 +83,9 @@ export function OvaDetailsForm() {
     try {
       setIsSubmitting(true);
       
+      console.log('Form submitted with data:', data);
+      console.log('Onboarding state:', onboardingState);
+      
       // Save OVA details to store
       setOvaDetails(data);
       
@@ -132,19 +135,29 @@ export function OvaDetailsForm() {
         telecelOva: data.telecelOva,
       };
 
+      console.log('Complete form data before validation:', completeFormData);
+      
       // Validate complete form data
       const validatedData = createMerchantSchema.parse(completeFormData);
-
-      // For now, just show success and navigate - actual API call would be implemented later
-      console.log('Merchant data ready for creation:', validatedData);
       
-      // Reset form data on success
+      console.log('Validated data:', validatedData);
+
+      // Call the API to create the merchant
+      const createdMerchant = await create(validatedData);
+      
+      console.log('Merchant created successfully:', createdMerchant);
+      
+      // Reset form data and localStorage on successful creation
+      console.log('Resetting form and clearing localStorage...');
       resetForm();
       
       // Navigate to merchants list
       router.push(ROUTES.MERCHANTS.INDEX);
     } catch (error) {
       console.error('Merchant creation failed:', error);
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -170,6 +183,14 @@ export function OvaDetailsForm() {
         {error && (
           <Alert variant="destructive" className="mb-6">
             <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {Object.keys(form.formState.errors).length > 0 && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertDescription>
+              Please fill in all required OVA selections before submitting.
+            </AlertDescription>
           </Alert>
         )}
 

@@ -39,15 +39,15 @@ export const createMerchantSchema = z.object({
   
   // OVA Details
   mtnOva: z.object({
-    ovaUuid: z.string().uuid(),
+    ovaUuid: z.string().min(1, 'MTN OVA is required'),
     telco: z.string()
   }),
   airtelOva: z.object({
-    ovaUuid: z.string().uuid(),
+    ovaUuid: z.string().min(1, 'Airtel OVA is required'),
     telco: z.string()
   }),
   telecelOva: z.object({
-    ovaUuid: z.string().uuid(),
+    ovaUuid: z.string().min(1, 'Telecel OVA is required'),
     telco: z.string()
   })
 });

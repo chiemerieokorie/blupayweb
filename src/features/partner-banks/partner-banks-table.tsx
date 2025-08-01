@@ -1,28 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import { MoreHorizontal, Plus, Trash2, Edit, Eye } from "lucide-react";
+import { useMemo } from "react";
+import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { usePartnerBanks, useSelectedPartnerBank } from "./hooks";
 import { PartnerBank } from "@/sdk/types";
+import { StandardizedDataTable, createHeaderWithIcon } from "@/components/ui/standardized-data-table";
+import { PartnerBankTableActions } from "./components/partner-bank-table-row";
+import { usePartnerBanks, useSelectedPartnerBank } from "./hooks";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  IconBuildingBank, 
+  IconTag, 
+  IconPercentage, 
+  IconDevices, 
+  IconUsers, 
+  IconCalendar,
+  IconSettings
+} from "@tabler/icons-react";
 
 interface PartnerBanksTableProps {
   onEdit?: (partnerBank: PartnerBank) => void;
@@ -54,105 +48,126 @@ export function PartnerBanksTable({ onEdit, onView, setShowCreateDialog, showCre
     }
   };
 
+  const handleView = (partnerBank: PartnerBank) => {
+    selectPartnerBank(partnerBank);
+    onView?.(partnerBank);
+  };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  const handleEdit = (partnerBank: PartnerBank) => {
+    selectPartnerBank(partnerBank);
+    onEdit?.(partnerBank);
+  };
+
+  const columns: ColumnDef<PartnerBank>[] = useMemo(
+    () => [
+      {
+        accessorKey: "name",
+        header: () => createHeaderWithIcon(
+          <IconBuildingBank className="h-4 w-4" />,
+          "Name"
+        ),
+        cell: ({ row }) => (
+          <div className="font-medium">{row.getValue("name")}</div>
+        ),
+      },
+      {
+        accessorKey: "slug",
+        header: () => createHeaderWithIcon(
+          <IconTag className="h-4 w-4" />,
+          "Slug"
+        ),
+        cell: ({ row }) => (
+          <div>{row.getValue("slug") || "-"}</div>
+        ),
+      },
+      {
+        accessorKey: "commissionRatio",
+        header: () => createHeaderWithIcon(
+          <IconPercentage className="h-4 w-4" />,
+          "Commission Rate"
+        ),
+        cell: ({ row }) => {
+          const ratio = row.getValue("commissionRatio") as number;
+          return (
+            <div>
+              {ratio ? `${(ratio * 100).toFixed(1)}%` : "-"}
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "devices",
+        header: () => createHeaderWithIcon(
+          <IconDevices className="h-4 w-4" />,
+          "Devices"
+        ),
+        cell: ({ row }) => {
+          const devices = row.getValue("devices") as any[];
+          return (
+            <Badge variant="outline">
+              {devices?.length || 0} devices
+            </Badge>
+          );
+        },
+        enableSorting: false,
+      },
+      {
+        accessorKey: "merchants",
+        header: () => createHeaderWithIcon(
+          <IconUsers className="h-4 w-4" />,
+          "Merchants"
+        ),
+        cell: ({ row }) => {
+          const merchants = row.getValue("merchants") as any[];
+          return (
+            <Badge variant="outline">
+              {merchants?.length || 0} merchants
+            </Badge>
+          );
+        },
+        enableSorting: false,
+      },
+      {
+        accessorKey: "createdAt",
+        header: () => createHeaderWithIcon(
+          <IconCalendar className="h-4 w-4" />,
+          "Created"
+        ),
+        cell: ({ row }) => (
+          <div>{new Date(row.getValue("createdAt")).toLocaleDateString()}</div>
+        ),
+      },
+      {
+        id: "actions",
+        header: () => createHeaderWithIcon(
+          <IconSettings className="h-4 w-4" />,
+          "Actions"
+        ),
+        cell: ({ row }) => (
+          <PartnerBankTableActions
+            partnerBank={row.original}
+            onView={handleView}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+    ],
+    [handleView, handleEdit, handleDelete]
+  );
 
   return (
-    <>
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Slug</TableHead>
-              <TableHead>Commission Ratio</TableHead>
-              <TableHead>Devices</TableHead>
-              <TableHead>Merchants</TableHead>
-              <TableHead>Created At</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {partnerBanks.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
-                  No partner banks found
-                </TableCell>
-              </TableRow>
-            ) : (
-              partnerBanks.map((partnerBank) => (
-                <TableRow key={partnerBank.uuid}>
-                  <TableCell className="font-medium">
-                    {partnerBank.name}
-                  </TableCell>
-                  <TableCell>{partnerBank.slug || '-'}</TableCell>
-                  <TableCell>
-                    {partnerBank.commissionRatio ? `${(partnerBank.commissionRatio * 100).toFixed(1)}%` : '-'}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">
-                      {partnerBank.devices?.length || 0} devices
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">
-                      {partnerBank.merchants?.length || 0} merchants
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(partnerBank.createdAt).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => {
-                            selectPartnerBank(partnerBank);
-                            onView?.(partnerBank);
-                          }}
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          View
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            selectPartnerBank(partnerBank);
-                            onEdit?.(partnerBank);
-                          }}
-                        >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => handleDelete(partnerBank)}
-                          className="text-red-600"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-    </>
+    <StandardizedDataTable
+      columns={columns}
+      data={partnerBanks}
+      loading={loading}
+      searchable={true}
+      searchPlaceholder="Search partner banks..."
+      searchKey="name"
+      emptyMessage="No partner banks found"
+      loadingMessage="Loading partner banks..."
+    />
   );
 }

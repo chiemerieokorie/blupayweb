@@ -11,7 +11,8 @@ import {
     VisibilityState,
     PaginationState,
 } from "@tanstack/react-table";
-import {IconArrowsSort} from "@tabler/icons-react";
+import {IconArrowsSort, IconUser, IconMail, IconUserCheck, IconPhone, IconCalendar, IconSettings} from "@tabler/icons-react";
+import { createHeaderWithIcon } from "@/components/ui/standardized-data-table";
 import {Badge} from "@/components/ui/badge";
 import {Button} from "@/components/ui/button";
 import {
@@ -110,11 +111,12 @@ export function UsersTable({onEdit, onView, setShowCreateDialog, showCreateDialo
             {
                 accessorKey: "firstName",
                 header: ({column}) => {
-                    return (
+                    return createHeaderWithIcon(
+                        <IconUser className="h-4 w-4" />,
                         <Button
                             variant="ghost"
                             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                            className="-ml-4 h-auto p-0 font-semibold"
+                            className="h-auto p-0 font-semibold"
                         >
                             Name
                             <IconArrowsSort className="ml-2 h-4 w-4"/>
@@ -133,11 +135,12 @@ export function UsersTable({onEdit, onView, setShowCreateDialog, showCreateDialo
             {
                 accessorKey: "email",
                 header: ({column}) => {
-                    return (
+                    return createHeaderWithIcon(
+                        <IconMail className="h-4 w-4" />,
                         <Button
                             variant="ghost"
                             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                            className="-ml-4 h-auto p-0 font-semibold"
+                            className="h-auto p-0 font-semibold"
                         >
                             Email
                             <IconArrowsSort className="ml-2 h-4 w-4"/>
@@ -148,11 +151,12 @@ export function UsersTable({onEdit, onView, setShowCreateDialog, showCreateDialo
             {
                 accessorKey: "role",
                 header: ({column}) => {
-                    return (
+                    return createHeaderWithIcon(
+                        <IconUserCheck className="h-4 w-4" />,
                         <Button
                             variant="ghost"
                             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                            className="-ml-4 h-auto p-0 font-semibold"
+                            className="h-auto p-0 font-semibold"
                         >
                             Role
                             <IconArrowsSort className="ml-2 h-4 w-4"/>
@@ -171,11 +175,12 @@ export function UsersTable({onEdit, onView, setShowCreateDialog, showCreateDialo
             {
                 accessorKey: "status",
                 header: ({column}) => {
-                    return (
+                    return createHeaderWithIcon(
+                        <IconUserCheck className="h-4 w-4" />,
                         <Button
                             variant="ghost"
                             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                            className="-ml-4 h-auto p-0 font-semibold"
+                            className="h-auto p-0 font-semibold"
                         >
                             Status
                             <IconArrowsSort className="ml-2 h-4 w-4"/>
@@ -193,7 +198,10 @@ export function UsersTable({onEdit, onView, setShowCreateDialog, showCreateDialo
             },
             {
                 accessorKey: "phoneNumber",
-                header: "Phone",
+                header: () => createHeaderWithIcon(
+                    <IconPhone className="h-4 w-4" />,
+                    "Phone"
+                ),
                 cell: ({row}) => {
                     const phone = row.getValue("phoneNumber") as string
                     return phone || "-"
@@ -202,11 +210,12 @@ export function UsersTable({onEdit, onView, setShowCreateDialog, showCreateDialo
             {
                 accessorKey: "createdAt",
                 header: ({column}) => {
-                    return (
+                    return createHeaderWithIcon(
+                        <IconCalendar className="h-4 w-4" />,
                         <Button
                             variant="ghost"
                             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                            className="-ml-4 h-auto p-0 font-semibold"
+                            className="h-auto p-0 font-semibold"
                         >
                             Created At
                             <IconArrowsSort className="ml-2 h-4 w-4"/>
@@ -220,6 +229,10 @@ export function UsersTable({onEdit, onView, setShowCreateDialog, showCreateDialo
             },
             {
                 id: "actions",
+                header: () => createHeaderWithIcon(
+                    <IconSettings className="h-4 w-4" />,
+                    "Actions"
+                ),
                 enableHiding: false,
                 cell: ({row}) => {
                     const user = row.original
@@ -326,9 +339,12 @@ export function UsersTable({onEdit, onView, setShowCreateDialog, showCreateDialo
                     <Table>
                         <TableHeader>
                             {table.getHeaderGroups().map((headerGroup) => (
-                                <TableRow key={headerGroup.id}>
+                                <TableRow key={headerGroup.id} className="border-b bg-muted/50">
                                     {headerGroup.headers.map((header) => (
-                                        <TableHead key={header.id}>
+                                        <TableHead 
+                                            key={header.id}
+                                            className="h-12 px-4 text-left align-middle font-semibold text-muted-foreground bg-muted/30"
+                                        >
                                             {header.isPlaceholder
                                                 ? null
                                                 : flexRender(
@@ -362,9 +378,12 @@ export function UsersTable({onEdit, onView, setShowCreateDialog, showCreateDialo
                     <Table>
                         <TableHeader>
                             {table.getHeaderGroups().map((headerGroup) => (
-                                <TableRow key={headerGroup.id}>
+                                <TableRow key={headerGroup.id} className="border-b bg-muted/50">
                                     {headerGroup.headers.map((header) => (
-                                        <TableHead key={header.id}>
+                                        <TableHead 
+                                            key={header.id}
+                                            className="h-12 px-4 text-left align-middle font-semibold text-muted-foreground bg-muted/30"
+                                        >
                                             {header.isPlaceholder
                                                 ? null
                                                 : flexRender(

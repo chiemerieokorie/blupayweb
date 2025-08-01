@@ -40,7 +40,6 @@ export default function DevicesPage() {
             </PageHeader>
 
             <div className="space-y-6">
-                <DeviceFilters/>
                 <DevicesTable showCreateDialog={showCreateDialog} setShowCreateDialog={setShowCreateDialog} />
             </div>
         </PageContainer>

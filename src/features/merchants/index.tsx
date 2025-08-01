@@ -84,20 +84,6 @@ export function MerchantsPage() {
                 </Actions>
             </PageHeader>
 
-            {/* Search and Filters */}
-            <div className="flex items-center gap-4 max-w-md">
-                <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"/>
-                    <Input
-                        placeholder="Search merchants by name, email, or code..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchTerm)}
-                        className="pl-9"
-                    />
-                </div>
-            </div>
-
             {/* Merchants Table */}
             <MerchantsTable
                 merchants={merchants?.data || []}

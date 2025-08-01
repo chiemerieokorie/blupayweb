@@ -51,7 +51,6 @@ export default function PartnerBanksPage() {
             </PageHeader>
 
             <div className="space-y-4">
-                <PartnerBankFilters/>
                 <PartnerBanksTable setShowCreateDialog={setShowCreateDialog} showCreateDialog={showCreateDialog}/>
             </div>
         </PageContainer>
