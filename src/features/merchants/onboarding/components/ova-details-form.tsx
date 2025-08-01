@@ -5,6 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useAtom } from 'jotai';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { ZodError } from 'zod';
+import { apiClient } from '@/sdk/client';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -13,10 +15,13 @@ import { IconDeviceMobile, IconArrowLeft, IconCheck } from '@tabler/icons-react'
 import { ROUTES } from '@/lib/constants';
 import { 
   ovaDetailsSchema, 
-  type OvaDetailsFormData,
-  createMerchantSchema,
-  type CreateMerchantFormData
+  type OvaDetailsFormData
 } from '../schema';
+import { 
+  apiCreateMerchantSchema,
+  mapFrontendToApiFormat,
+  type ApiCreateMerchant
+} from '../api-schema';
 import { 
   ovaDetailsAtom, 
   currentStepAtom, 
@@ -29,21 +34,10 @@ import {
 import { useCreateMerchant } from '../../hooks';
 import { ExtendedCreateMerchantDto } from '@/sdk/types';
 
-// Mock OVA data - in real app, this would come from an API
-const mtnOvas = [
-  { uuid: '11111111-1111-1111-1111-111111111111', name: 'MTN OVA 1', telco: 'mtn' },
-  { uuid: '22222222-2222-2222-2222-222222222222', name: 'MTN OVA 2', telco: 'mtn' },
-];
-
-const airtelOvas = [
-  { uuid: '33333333-3333-3333-3333-333333333333', name: 'AIRTEL OVA 1', telco: 'airtel' },
-  { uuid: '44444444-4444-4444-4444-444444444444', name: 'AIRTEL OVA 2', telco: 'airtel' },
-];
-
-const telecelOvas = [
-  { uuid: '55555555-5555-5555-5555-555555555555', name: 'TELECEL OVA 1', telco: 'telecel' },
-  { uuid: '66666666-6666-6666-6666-666666666666', name: 'TELECEL OVA 2', telco: 'telecel' },
-];
+// Mock OVA data - disabled since no OVAs exist in database
+const mtnOvas: Array<{ uuid: string; name: string; telco: string }> = [];
+const airtelOvas: Array<{ uuid: string; name: string; telco: string }> = [];
+const telecelOvas: Array<{ uuid: string; name: string; telco: string }> = [];
 
 export function OvaDetailsForm() {
   const router = useRouter();
@@ -56,13 +50,16 @@ export function OvaDetailsForm() {
   const [, resetForm] = useAtom(resetFormAtom);
   const { create, loading, error } = useCreateMerchant();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const form = useForm<OvaDetailsFormData>({
     resolver: zodResolver(ovaDetailsSchema),
     defaultValues: {
-      mtnOva: ovaDetails?.mtnOva || { ovaUuid: '', telco: 'mtn' },
-      airtelOva: ovaDetails?.airtelOva || { ovaUuid: '', telco: 'airtel' },
-      telecelOva: ovaDetails?.telecelOva || { ovaUuid: '', telco: 'telecel' },
+      mtnOva: ovaDetails?.mtnOva && ovaDetails.mtnOva.ovaUuid ? ovaDetails.mtnOva : { ovaUuid: '', telco: 'mtn' },
+      airtelOva: ovaDetails?.airtelOva && ovaDetails.airtelOva.ovaUuid ? ovaDetails.airtelOva : { ovaUuid: '', telco: 'airtel' },
+      telecelOva: ovaDetails?.telecelOva && ovaDetails.telecelOva.ovaUuid ? ovaDetails.telecelOva : { ovaUuid: '', telco: 'telecel' },
     },
   });
 
@@ -82,6 +79,9 @@ export function OvaDetailsForm() {
   const onSubmit = async (data: OvaDetailsFormData) => {
     try {
       setIsSubmitting(true);
+      setValidationErrors([]);
+      setApiError(null);
+      setSuccessMessage(null);
       
       console.log('Form submitted with data:', data);
       console.log('Onboarding state:', onboardingState);
@@ -92,8 +92,8 @@ export function OvaDetailsForm() {
       // Mark step as completed
       markStepCompleted(5);
 
-      // Combine all form data for submission
-      const completeFormData: CreateMerchantFormData = {
+      // Combine all form data from different steps
+      const frontendFormData = {
         // Merchant Details
         merchantCode: onboardingState.merchantDetails.merchantCode!,
         merchantName: onboardingState.merchantDetails.merchantName!,
@@ -110,7 +110,6 @@ export function OvaDetailsForm() {
         surcharge: onboardingState.settlementDetails.surcharge!,
         partnerBank: onboardingState.settlementDetails.partnerBank!,
         settlementAccount: onboardingState.settlementDetails.settlementAccount!,
-        totalSurcharge: onboardingState.settlementDetails.totalSurcharge!,
         merchantPercentageSurcharge: onboardingState.settlementDetails.merchantPercentageSurcharge!,
         customerPercentageSurcharge: onboardingState.settlementDetails.customerPercentageSurcharge!,
         surchargeCap: onboardingState.settlementDetails.surchargeCap,
@@ -121,6 +120,7 @@ export function OvaDetailsForm() {
         lastName: onboardingState.userDetails.lastName!,
         email: onboardingState.userDetails.email!,
         phoneNumber: onboardingState.userDetails.phoneNumber!,
+        password: onboardingState.userDetails.password!,
         
         // Bank Details
         merchantBank: onboardingState.bankDetails.merchantBank!,
@@ -129,34 +129,70 @@ export function OvaDetailsForm() {
         accountNumber: onboardingState.bankDetails.accountNumber!,
         accountName: onboardingState.bankDetails.accountName!,
         
-        // OVA Details
-        mtnOva: data.mtnOva,
-        airtelOva: data.airtelOva,
-        telecelOva: data.telecelOva,
+        // OVA Details (only include if actually selected, not default empty values)
+        mtnOva: data.mtnOva?.ovaUuid && data.mtnOva.ovaUuid.trim() !== '' ? data.mtnOva : { ovaUuid: '', telco: 'mtn' },
+        airtelOva: data.airtelOva?.ovaUuid && data.airtelOva.ovaUuid.trim() !== '' ? data.airtelOva : { ovaUuid: '', telco: 'airtel' },
+        telecelOva: data.telecelOva?.ovaUuid && data.telecelOva.ovaUuid.trim() !== '' ? data.telecelOva : { ovaUuid: '', telco: 'telecel' },
       };
 
-      console.log('Complete form data before validation:', completeFormData);
+      console.log('Frontend form data:', frontendFormData);
+      console.log('OVA data specifically:', {
+        mtnOva: frontendFormData.mtnOva,
+        airtelOva: frontendFormData.airtelOva,
+        telecelOva: frontendFormData.telecelOva
+      });
+
+      // Map frontend data to API format
+      const apiFormData = mapFrontendToApiFormat(frontendFormData);
       
-      // Validate complete form data
-      const validatedData = createMerchantSchema.parse(completeFormData);
+      console.log('API form data before validation:', apiFormData);
+      console.log('OVA details in API format:', apiFormData.ovaDetails);
+
+      // Validate using API schema
+      const validatedData = apiCreateMerchantSchema.parse(apiFormData);
       
-      console.log('Validated data:', validatedData);
+      console.log('Validated API data:', validatedData);
 
       // Call the API to create the merchant
       const createdMerchant = await create(validatedData);
       
       console.log('Merchant created successfully:', createdMerchant);
       
+      // Show success message
+      setSuccessMessage('Merchant created successfully! Redirecting...');
+      
       // Reset form data and localStorage on successful creation
       console.log('Resetting form and clearing localStorage...');
       resetForm();
       
-      // Navigate to merchants list
-      router.push(ROUTES.MERCHANTS.INDEX);
+      // Navigate to merchants list after a short delay to show success message
+      setTimeout(() => {
+        router.push(ROUTES.MERCHANTS.INDEX);
+      }, 2000);
     } catch (error) {
       console.error('Merchant creation failed:', error);
-      if (error instanceof Error) {
-        console.error('Error message:', error.message);
+      
+      if (error instanceof ZodError) {
+        // Handle validation errors
+        const errorMessages = error.issues.map((err: any) => `${err.path.join('.')}: ${err.message}`);
+        setValidationErrors(errorMessages);
+      } else if (error instanceof Error) {
+        // Handle API errors
+        let errorMessage = error.message;
+        
+        // Try to parse API error response
+        try {
+          const errorData = JSON.parse(error.message);
+          if (errorData.message) {
+            errorMessage = errorData.message;
+          }
+        } catch {
+          // Keep original error message if not JSON
+        }
+        
+        setApiError(errorMessage);
+      } else {
+        setApiError('An unexpected error occurred while creating the merchant.');
       }
     } finally {
       setIsSubmitting(false);
@@ -176,25 +212,59 @@ export function OvaDetailsForm() {
           <span>OVA Details</span>
         </h6>
         <p className="text-muted-foreground text-sm">
-          Select OVAs (Over-the-Air) settings for each mobile network operator
+          Select OVAs (Over-the-Air) settings for each mobile network operator. OVA selections are optional - you can skip this step if no OVAs are configured.
         </p>
       </div>
       <div>
-        {error && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertDescription>{error}</AlertDescription>
+        {/* Success Message */}
+        {successMessage && (
+          <Alert variant="default" className="mb-6 border-green-200 bg-green-50">
+            <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
           </Alert>
         )}
 
+        {/* API Error */}
+        {(error || apiError) && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertDescription>{error || apiError}</AlertDescription>
+          </Alert>
+        )}
+
+        {/* Validation Errors */}
+        {validationErrors.length > 0 && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertDescription>
+              <div className="space-y-1">
+                <p className="font-medium">Please fix the following errors:</p>
+                <ul className="list-disc list-inside text-sm">
+                  {validationErrors.map((error, index) => (
+                    <li key={index}>{error}</li>
+                  ))}
+                </ul>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Form Field Errors */}
         {Object.keys(form.formState.errors).length > 0 && (
           <Alert variant="destructive" className="mb-6">
             <AlertDescription>
-              Please fill in all required OVA selections before submitting.
+              {form.formState.errors.root?.message || "OVA selections are optional. You can skip if no OVAs are available."}
             </AlertDescription>
           </Alert>
         )}
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Show message when no OVAs are available */}
+          {mtnOvas.length === 0 && airtelOvas.length === 0 && telecelOvas.length === 0 && (
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-800">
+                <strong>Note:</strong> No OVAs are currently configured in the system. Merchants will be created without OVA assignments. Contact your system administrator to configure OVAs if needed.
+              </p>
+            </div>
+          )}
+          
           <div className="grid gap-6 md:grid-cols-3">
             <div className="space-y-2">
               <Label>MTN OVA</Label>
@@ -220,7 +290,9 @@ export function OvaDetailsForm() {
                 </SelectContent>
               </Select>
               {form.formState.errors.mtnOva && (
-                <p className="text-sm text-red-500">{form.formState.errors.mtnOva.message}</p>
+                <p className="text-sm text-red-500">
+                  {form.formState.errors.mtnOva.message || 'MTN OVA selection is required'}
+                </p>
               )}
             </div>
 
@@ -248,7 +320,9 @@ export function OvaDetailsForm() {
                 </SelectContent>
               </Select>
               {form.formState.errors.airtelOva && (
-                <p className="text-sm text-red-500">{form.formState.errors.airtelOva.message}</p>
+                <p className="text-sm text-red-500">
+                  {form.formState.errors.airtelOva.message || 'Airtel OVA selection is required'}
+                </p>
               )}
             </div>
 
@@ -276,7 +350,9 @@ export function OvaDetailsForm() {
                 </SelectContent>
               </Select>
               {form.formState.errors.telecelOva && (
-                <p className="text-sm text-red-500">{form.formState.errors.telecelOva.message}</p>
+                <p className="text-sm text-red-500">
+                  {form.formState.errors.telecelOva.message || 'Telecel OVA selection is required'}
+                </p>
               )}
             </div>
           </div>

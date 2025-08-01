@@ -79,11 +79,15 @@ export const settlementDetailsSchema = createMerchantSchema.pick({
 });
 
 // Step 3: User Details Schema
-export const userDetailsSchema = createMerchantSchema.pick({
-  firstName: true,
-  lastName: true,
-  email: true,
-  phoneNumber: true,
+export const userDetailsSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  email: z.string().email('Please enter a valid email address'),
+  phoneNumber: z.string().min(10, 'Phone number must be at least 10 digits').max(15, 'Phone number cannot exceed 15 digits'),
+  password: z.string().min(8, 'Password must be at least 8 characters').regex(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+    'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
+  ),
 });
 
 // Step 4: Bank Details Schema  
@@ -96,10 +100,19 @@ export const bankDetailsSchema = createMerchantSchema.pick({
 });
 
 // Step 5: OVA Details Schema
-export const ovaDetailsSchema = createMerchantSchema.pick({
-  mtnOva: true,
-  airtelOva: true,
-  telecelOva: true,
+export const ovaDetailsSchema = z.object({
+  mtnOva: z.object({
+    ovaUuid: z.string().optional().default(''),
+    telco: z.string().default('mtn')
+  }).optional().default({ ovaUuid: '', telco: 'mtn' }),
+  airtelOva: z.object({
+    ovaUuid: z.string().optional().default(''),
+    telco: z.string().default('airtel')
+  }).optional().default({ ovaUuid: '', telco: 'airtel' }),
+  telecelOva: z.object({
+    ovaUuid: z.string().optional().default(''),
+    telco: z.string().default('telecel')
+  }).optional().default({ ovaUuid: '', telco: 'telecel' }),
 });
 
 // Type exports
@@ -145,6 +158,29 @@ export const settlementAccountTypes = [
   { value: 'PARENT_BANK', label: 'Parent Bank' },
   { value: 'MERCHANT_BANK', label: 'Merchant Bank' },
 ];
+
+// API-compliant enum mappings for validation
+export const apiEnumMappings = {
+  frequency: {
+    'DAILY': 'daily',
+    'WEEKLY': 'weekly', 
+    'MONTHLY': 'monthly'
+  },
+  surcharge: {
+    'Customer': 'customer',
+    'Merchant': 'merchant',
+    'BOTH': 'customer_and_merchant'
+  },
+  settlementAccount: {
+    'PARENT_BANK': 'parent-bank',
+    'MERCHANT_BANK': 'sub-merchant-bank'
+  },
+  accountType: {
+    'CURRENT_ACCOUNT': 'current_account',
+    'SAVINGS': 'savings',
+    'CALL_ACCOUNT': 'call_account'
+  }
+};
 
 export const merchantCategories = [
   { value: 5411, label: 'Grocery Stores, Supermarkets' },

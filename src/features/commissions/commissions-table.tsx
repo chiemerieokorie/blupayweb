@@ -1,25 +1,8 @@
 "use client";
 
-import {useState} from "react";
-import {MoreHorizontal, Plus, Trash2, Edit, Eye} from "lucide-react";
-import {Badge} from "@/components/ui/badge";
-import {Button} from "@/components/ui/button";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
+import { useMemo } from "react";
+import { ColumnDef } from "@tanstack/react-table";
+import { Badge } from "@/components/ui/badge";
 import {
     Dialog,
     DialogContent,
@@ -27,10 +10,21 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import {useCommissions, useSelectedCommission} from "./hooks";
-import {Commission} from "@/sdk/types";
-import {CreateCommissionForm} from "./create-commission-form";
-import {useToast} from "@/hooks/use-toast";
+import { StandardizedDataTable, createHeaderWithIcon } from "@/components/ui/standardized-data-table";
+import { CommissionTableActions } from "./components/commission-table-row";
+import { useCommissions, useSelectedCommission } from "./hooks";
+import { Commission } from "@/sdk/types";
+import { CreateCommissionForm } from "./create-commission-form";
+import { useToast } from "@/hooks/use-toast";
+import { 
+  IconPercentage, 
+  IconCurrencyDollar, 
+  IconStatusChange, 
+  IconBuildingStore, 
+  IconBuildingBank,
+  IconCalendar,
+  IconSettings
+} from "@tabler/icons-react";
 
 interface CommissionsTableProps {
     onEdit?: (commission: Commission) => void;
@@ -60,6 +54,16 @@ export function CommissionsTable({onEdit, onView, setShowCreateDialog, showCreat
                 });
             }
         }
+    };
+
+    const handleView = (commission: Commission) => {
+        selectCommission(commission);
+        onView?.(commission);
+    };
+
+    const handleEdit = (commission: Commission) => {
+        selectCommission(commission);
+        onEdit?.(commission);
     };
 
     const getTypeBadgeVariant = (type: string) => {
@@ -95,105 +99,114 @@ export function CommissionsTable({onEdit, onView, setShowCreateDialog, showCreat
         }).format(amount);
     };
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            </div>
-        );
-    }
+    const columns = useMemo<ColumnDef<Commission>[]>(
+        () => [
+            {
+                accessorKey: "type",
+                header: () => createHeaderWithIcon(
+                    <IconPercentage className="h-4 w-4" />,
+                    "Type"
+                ),
+                cell: ({ row }) => (
+                    <Badge variant={getTypeBadgeVariant(row.getValue("type"))}>
+                        {row.getValue("type")}
+                    </Badge>
+                ),
+            },
+            {
+                id: "rateAmount",
+                header: () => createHeaderWithIcon(
+                    <IconCurrencyDollar className="h-4 w-4" />,
+                    "Rate/Amount"
+                ),
+                cell: ({ row }) => {
+                    const commission = row.original;
+                    return (
+                        <div className="font-medium">
+                            {commission.type === 'PERCENTAGE'
+                                ? `${commission.rate}%`
+                                : formatCurrency(commission.amount || 0)
+                            }
+                        </div>
+                    );
+                },
+                enableSorting: false,
+            },
+            {
+                accessorKey: "status",
+                header: () => createHeaderWithIcon(
+                    <IconStatusChange className="h-4 w-4" />,
+                    "Status"
+                ),
+                cell: ({ row }) => (
+                    <Badge variant={getStatusBadgeVariant(row.getValue("status"))}>
+                        {row.getValue("status")}
+                    </Badge>
+                ),
+            },
+            {
+                accessorKey: "merchantId",
+                header: () => createHeaderWithIcon(
+                    <IconBuildingStore className="h-4 w-4" />,
+                    "Merchant"
+                ),
+                cell: ({ row }) => (
+                    <div>{row.getValue("merchantId") || "-"}</div>
+                ),
+            },
+            {
+                accessorKey: "partnerBankId",
+                header: () => createHeaderWithIcon(
+                    <IconBuildingBank className="h-4 w-4" />,
+                    "Partner Bank"
+                ),
+                cell: ({ row }) => (
+                    <div>{row.getValue("partnerBankId") || "-"}</div>
+                ),
+            },
+            {
+                accessorKey: "createdAt",
+                header: () => createHeaderWithIcon(
+                    <IconCalendar className="h-4 w-4" />,
+                    "Created At"
+                ),
+                cell: ({ row }) => (
+                    <div>{new Date(row.getValue("createdAt")).toLocaleDateString()}</div>
+                ),
+            },
+            {
+                id: "actions",
+                header: () => createHeaderWithIcon(
+                    <IconSettings className="h-4 w-4" />,
+                    "Actions"
+                ),
+                cell: ({ row }) => (
+                    <CommissionTableActions
+                        commission={row.original}
+                        onView={handleView}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                    />
+                ),
+                enableSorting: false,
+                enableHiding: false,
+            },
+        ],
+        [handleView, handleEdit, handleDelete]
+    );
 
     return (
         <div className="space-y-4">
-            <div className="border rounded-lg">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Type</TableHead>
-                            <TableHead>Rate/Amount</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Merchant</TableHead>
-                            <TableHead>Partner Bank</TableHead>
-                            <TableHead>Created At</TableHead>
-                            <TableHead className="w-[50px]"></TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {commissions.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
-                                    No commissions found
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            commissions.map((commission) => (
-                                <TableRow key={commission.id}>
-                                    <TableCell>
-                                        <Badge variant={getTypeBadgeVariant(commission.type)}>
-                                            {commission.type}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="font-medium">
-                                        {commission.type === 'PERCENTAGE'
-                                            ? `${commission.rate}%`
-                                            : formatCurrency(commission.amount || 0)
-                                        }
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant={getStatusBadgeVariant(commission.status)}>
-                                            {commission.status}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>{commission.merchantId || "-"}</TableCell>
-                                    <TableCell>{commission.partnerBankId || "-"}</TableCell>
-                                    <TableCell>
-                                        {new Date(commission.createdAt).toLocaleDateString()}
-                                    </TableCell>
-                                    <TableCell>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                                    <MoreHorizontal className="h-4 w-4"/>
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                <DropdownMenuSeparator/>
-                                                <DropdownMenuItem
-                                                    onClick={() => {
-                                                        selectCommission(commission);
-                                                        onView?.(commission);
-                                                    }}
-                                                >
-                                                    <Eye className="h-4 w-4 mr-2"/>
-                                                    View
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    onClick={() => {
-                                                        selectCommission(commission);
-                                                        onEdit?.(commission);
-                                                    }}
-                                                >
-                                                    <Edit className="h-4 w-4 mr-2"/>
-                                                    Edit
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSeparator/>
-                                                <DropdownMenuItem
-                                                    onClick={() => handleDelete(commission)}
-                                                    className="text-red-600"
-                                                >
-                                                    <Trash2 className="h-4 w-4 mr-2"/>
-                                                    Delete
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
+            <StandardizedDataTable
+                columns={columns}
+                data={commissions}
+                loading={loading}
+                searchable={true}
+                searchPlaceholder="Search commissions..."
+                searchKey="type"
+                emptyMessage="No commissions found"
+                loadingMessage="Loading commissions..."
+            />
 
             <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
                 <DialogContent className="max-w-2xl">

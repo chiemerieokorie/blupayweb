@@ -38,6 +38,7 @@ export function UserDetailsForm() {
       lastName: userDetails.lastName || '',
       email: userDetails.email || '',
       phoneNumber: userDetails.phoneNumber || '',
+      password: userDetails.password || '',
     },
   });
 
@@ -155,9 +156,23 @@ export function UserDetailsForm() {
             </div>
           </div>
 
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-800">
-              <strong>Note:</strong> A default password will be generated automatically using the pattern: <code>{form.watch('firstName') || '[firstName]'}_001</code>
+          <div className="space-y-2">
+            <Label htmlFor="password" className="flex items-center gap-2">
+              <IconUser className="h-4 w-4" />
+              Password
+            </Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="Enter secure password"
+              className="w-full"
+              {...form.register('password')}
+            />
+            {form.formState.errors.password && (
+              <p className="text-sm text-red-500">{form.formState.errors.password.message}</p>
+            )}
+            <p className="text-xs text-gray-600">
+              Password must contain at least 8 characters with uppercase, lowercase, number, and special character.
             </p>
           </div>
 

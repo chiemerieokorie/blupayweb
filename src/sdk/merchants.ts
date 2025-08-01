@@ -50,8 +50,9 @@ export class MerchantsService {
     try {
       return await apiClient.post('/merchants', data);
     } catch (error) {
-      console.warn('Create merchant endpoint not available');
-      throw new Error('Merchant creation not implemented yet');
+      console.error('Merchant creation failed:', error);
+      // Re-throw the original error to preserve API error details
+      throw error;
     }
   }
 

@@ -1,7 +1,6 @@
 "use client";
 
 import {useEffect, useState} from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CommissionsTable } from "./commissions-table";
 import { useCommissions } from "./hooks";
@@ -17,8 +16,9 @@ import {
 import {ROUTES} from "@/lib/constants";
 
 export default function CommissionsPage() {
-  const { fetchCommissions, total, loading, error, filters } = useCommissions();
+  const { fetchCommissions, loading, error, filters } = useCommissions();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  
   useEffect(() => {
     fetchCommissions();
   }, [fetchCommissions, filters]);
@@ -44,55 +44,6 @@ export default function CommissionsPage() {
           </Button>
         </Actions>
       </PageHeader>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Rules</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{total}</div>
-            <p className="text-xs text-muted-foreground">
-              Commission rules
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Rules</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">-</div>
-            <p className="text-xs text-muted-foreground">
-              Currently active
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">This Month</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">-</div>
-            <p className="text-xs text-muted-foreground">
-              Commissions earned
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Rate</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">-</div>
-            <p className="text-xs text-muted-foreground">
-              Across all rules
-            </p>
-          </CardContent>
-        </Card>
-      </div>
       <CommissionsTable setShowCreateDialog={setShowCreateDialog} showCreateDialog={showCreateDialog} />
     </PageContainer>
   );
