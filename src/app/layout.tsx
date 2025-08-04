@@ -43,7 +43,9 @@ export const metadata: Metadata = {
         creator: "@blupayafrica",
     },
     icons: {
-        icon: "/favicon.ico",
+        icon: "/logo.png",
+        shortcut: "/logo.png",
+        apple: "/logo.png",
     },
 }
 

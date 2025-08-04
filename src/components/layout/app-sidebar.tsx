@@ -1,24 +1,19 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
 import {
     IconAffiliate,
     IconBuildingBank,
     IconCreditCardPay,
     IconDashboard,
     IconHelp,
-    IconInnerShadowTop,
     IconSquareRoundedPercentage,
     IconSettings,
     IconUsers,
     IconDeviceTabletDollar,
-    IconMoneybag,
-    IconWorldWww,
-    IconTransfer,
-    IconFileText,
     IconPigMoney,
     IconSquareRoundedLetterM,
-    IconUserCog,
 } from "@tabler/icons-react"
 
 import {NavGroup} from "@/components/layout/nav-group"
@@ -202,9 +197,16 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton
-                            className="data-[slot=sidebar-menu-button]:!p-1.5"
+                            className="data-[slot=sidebar-menu-button]:!p-1"
                         >
-                            <IconInnerShadowTop className="!size-5"/>
+                            <Image
+                                src="/logo.png"
+                                alt="Blupay Africa Logo"
+                                width={32}
+                                height={32}
+                                className="rounded-sm"
+                                unoptimized
+                            />
                             <span className="text-base font-semibold">
                               Blupay Africa
                             </span>

@@ -40,15 +40,15 @@ export default withAuth(
     }
 
     // Users page - accessible by ADMIN only
-    if (pathname.startsWith('/users') && ![UserRoleEnum.MERCHANT].includes(userRole || '')) {
+    if (pathname.startsWith('/users') && userRole && ![UserRoleEnum.MERCHANT].includes(userRole)) {
       return NextResponse.redirect(new URL('/unauthorized', req.url));
     }
 
-    if (pathname.startsWith('/partner') && ![UserRoleEnum.PARTNER_BANK].includes(userRole || '')) {
+    if (pathname.startsWith('/partner') && userRole &&![UserRoleEnum.PARTNER_BANK].includes(userRole)) {
       return NextResponse.redirect(new URL('/unauthorized', req.url));
     }
 
-    if (pathname.startsWith('/merchant') && ![UserRoleEnum.MERCHANT, UserRoleEnum.SUB_MERCHANT].includes(userRole || '')) {
+    if (pathname.startsWith('/merchant') && userRole && ![UserRoleEnum.MERCHANT, UserRoleEnum.SUB_MERCHANT].includes(userRole || '')) {
       return NextResponse.redirect(new URL('/unauthorized', req.url));
     }
 
@@ -69,8 +69,10 @@ export default withAuth(
   }
 );
 
+
 export const config = {
-  matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|public).*)',
-  ],
+    matcher: [
+        // Only match paths that don't start with these prefixes:
+        '/((?!api|_next/static|_next/image|favicon.ico|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.webp|.*\\.svg|.*\\.gif|.*\\.ico).*)',
+    ],
 };
