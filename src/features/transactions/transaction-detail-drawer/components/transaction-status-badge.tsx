@@ -1,5 +1,4 @@
-import { Badge } from '@/components/ui/badge';
-import { getStatusBadgeVariant } from '../utils';
+import { StatusBadge } from '@/components/status-badge';
 
 interface TransactionStatusBadgeProps {
   status: string;
@@ -7,9 +6,5 @@ interface TransactionStatusBadgeProps {
 }
 
 export function TransactionStatusBadge({ status, className }: TransactionStatusBadgeProps) {
-  return (
-    <Badge variant={getStatusBadgeVariant(status)} className={className}>
-      {status}
-    </Badge>
-  );
+  return <StatusBadge status={status} type="transaction" className={className} />;
 }

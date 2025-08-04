@@ -14,6 +14,7 @@ import {
 import {IconArrowsSort, IconUser, IconMail, IconUserCheck, IconPhone, IconCalendar, IconSettings} from "@tabler/icons-react";
 import { createHeaderWithIcon } from "@/components/ui/standardized-data-table";
 import {Badge} from "@/components/ui/badge";
+import { StatusBadge } from "@/components/status-badge";
 import {Button} from "@/components/ui/button";
 import {
     Table,
@@ -189,11 +190,7 @@ export function UsersTable({onEdit, onView, setShowCreateDialog, showCreateDialo
                 },
                 cell: ({row}) => {
                     const status = row.getValue("status") as string
-                    return (
-                        <Badge variant={getStatusBadgeVariant(status)}>
-                            {status}
-                        </Badge>
-                    )
+                    return <StatusBadge status={status} type="user" />
                 },
             },
             {

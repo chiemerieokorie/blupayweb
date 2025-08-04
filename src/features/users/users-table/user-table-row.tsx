@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -67,9 +68,7 @@ export function UserTableRow({
         </div>
       </TableCell>
       <TableCell>
-        <Badge variant={getStatusBadgeVariant(user.status)}>
-          {user.status}
-        </Badge>
+        <StatusBadge status={user.status} type="user" />
       </TableCell>
       <TableCell>{user.phoneNumber || "-"}</TableCell>
       <TableCell>

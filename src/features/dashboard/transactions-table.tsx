@@ -104,6 +104,7 @@ import {
 } from "./atoms"
 import { useAuth } from '@/features/auth/hooks'
 import { getProcessorConfig, getTransactionStatusConfig } from "./constants"
+import { StatusBadge } from "@/components/status-badge"
 
 // Create a sortable header component for column reordering
 function SortableHeader({ id, children }: { id: string; children: React.ReactNode }) {
@@ -368,7 +369,7 @@ const createColumns = (columnOrder: string[]): ColumnDef<Transaction>[] => {
           </div>
         </SortableHeader>
       ),
-      cell: ({ row }) => getStatusBadge(row.original.status),
+      cell: ({ row }) => <StatusBadge status={row.original.status} type="transaction" />,
     },
     type: {
       id: "type",

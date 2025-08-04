@@ -104,6 +104,7 @@ import {
 } from "./atoms"
 import { useAuth } from '@/features/auth/hooks'
 import { getProcessorConfig, getTransactionStatusConfig } from "./constants"
+import { StatusBadge } from "@/components/status-badge"
 import { TransactionDetailDrawer } from './transaction-detail-drawer'
 
 // Create a sortable header component for column reordering
@@ -369,7 +370,7 @@ const createColumns = (columnOrder: string[], onViewTransaction: (transactionRef
           </div>
         </SortableHeader>
       ),
-      cell: ({ row }) => getStatusBadge(row.original.status),
+      cell: ({ row }) => <StatusBadge status={row.original.status} type="transaction" />,
     },
     type: {
       id: "type",
