@@ -102,7 +102,7 @@ export function OTPForm() {
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold">Verify your email</h1>
         <p className="text-muted-foreground text-sm text-balance">
-          We've sent a verification code to your email address. Enter the code below to continue.
+          We&apos;ve sent a verification code to your email address. Enter the code below to continue.
         </p>
       </div>
       
@@ -146,7 +146,7 @@ export function OTPForm() {
             onClick={handleResend}
             disabled={loading}
           >
-            Didn't receive a code? Resend
+            Didn&apos;t receive a code? Resend
           </Button>
 
           <Button

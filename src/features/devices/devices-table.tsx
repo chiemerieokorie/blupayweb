@@ -37,9 +37,8 @@ export function DevicesTable({onEdit, onView, setShowCreateDialog, showCreateDia
     const {toast} = useToast();
 
     const handleDelete = async (device: Device) => {
-        if (window.confirm(`Are you sure you want to delete device ${device.serialNumber}?`)) {
             try {
-                await deleteDevice(device.id);
+                await deleteDevice(device.uuid);
                 toast({
                     title: "Success",
                     description: "Device deleted successfully",
@@ -51,7 +50,6 @@ export function DevicesTable({onEdit, onView, setShowCreateDialog, showCreateDia
                     variant: "destructive",
                 });
             }
-        }
     };
 
     const handleView = (device: Device) => {

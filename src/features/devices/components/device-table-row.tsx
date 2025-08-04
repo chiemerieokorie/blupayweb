@@ -62,13 +62,13 @@ export function DeviceTableRow({
 
   return (
     <>
-      <div className="font-medium">{device.serialNumber}</div>
+      <div className="font-medium">{device.deviceId}</div>
       <div>
         <Badge variant={getStatusBadgeVariant(device.status)}>
           {getStatusLabel(device.status)}
         </Badge>
       </div>
-      <div>{device.merchantId || "-"}</div>
+      <div>{device.merchant?.merchantName || device.merchantUuid || "-"}</div>
       <div>
         {new Date(device.createdAt).toLocaleDateString("en-US", {
           year: "numeric",

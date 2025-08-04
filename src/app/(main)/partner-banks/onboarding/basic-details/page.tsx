@@ -115,7 +115,7 @@ export default function BasicDetailsPage() {
                       onFileChange={handleFileChange}
                       placeholder="Drop your bank logo here"
                       maxSizeMB={5}
-                      defaultValue={selectedFile}
+                      defaultValue={selectedFile || undefined}
                     />
                   </FormControl>
                   <FormMessage />

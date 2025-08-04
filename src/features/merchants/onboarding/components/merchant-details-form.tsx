@@ -48,7 +48,7 @@ export function MerchantDetailsForm() {
 
   const onSubmit = (data: MerchantDetailsFormData) => {
     // Save form data to store
-    setMerchantDetails(data);
+    setMerchantDetails({...data, country: data.country as 'GHANA'});
     
     // Mark step as completed
     markStepCompleted(1);
