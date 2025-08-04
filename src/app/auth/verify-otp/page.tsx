@@ -1,15 +1,15 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { GalleryVerticalEnd } from "lucide-react"
-import { LoginForm } from '@/features/auth/login-form';
+import { OTPForm } from '@/features/auth/otp-form';
 import { ROUTES } from '@/lib/constants';
 
 export const metadata: Metadata = {
-  title: 'Login - Blupay Africa',
-  description: 'Sign in to your Blupay Africa account',
+  title: 'Verify Email - Blupay Africa',
+  description: 'Verify your Blupay Africa account',
 };
 
-export default function LoginPage() {
+export default function VerifyOTPPage() {
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-6 md:p-10">
@@ -23,7 +23,7 @@ export default function LoginPage() {
         </div>
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-xs">
-            <LoginForm />
+            <OTPForm />
           </div>
         </div>
       </div>

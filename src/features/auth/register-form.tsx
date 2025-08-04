@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,19 +13,19 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ROUTES } from '@/lib/constants';
 
-const loginSchema = z.object({
+const registerSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
   email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(1, 'Password is required'),
-  partnerBank: z.string().optional().transform(val => {
-    // Transform empty string or 'undefined' to actual undefined
-    if (!val || val === '' || val === 'undefined') {
-      return undefined;
-    }
-    return val;
-  }),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  confirmPassword: z.string(),
+  partnerBank: z.string().optional(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
-type LoginFormData = z.infer<typeof loginSchema>;
+type RegisterFormData = z.infer<typeof registerSchema>;
 
 const partnerBanks = [
   { value: 'access', label: 'Access Bank' },
@@ -37,43 +36,36 @@ const partnerBanks = [
   { value: 'blupay', label: 'BluPay' },
 ];
 
-export function LoginForm() {
+export function RegisterForm() {
   const router = useRouter();
   const [showPartnerBank, setShowPartnerBank] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const form = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema) as any,
+  const form = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
+      firstName: '',
+      lastName: '',
       email: '',
       password: '',
+      confirmPassword: '',
       partnerBank: undefined,
     },
   });
 
-  const onSubmit = async (data: LoginFormData) => {
+  const onSubmit = async (data: RegisterFormData) => {
     try {
       setLoading(true);
       setError(null);
       
-      const callbackUrl = ROUTES.DASHBOARD;
+      // TODO: Implement registration API call
+      console.log('Registration data:', data);
       
-      const result = await signIn('credentials', {
-        email: data.email,
-        password: data.password,
-        partnerBank: data.partnerBank,
-        redirect: false,
-      });
-      
-      if (result?.error) {
-        setError('Invalid credentials. Please try again.');
-      } else if (result?.ok) {
-        router.push(callbackUrl);
-        router.refresh();
-      }
+      // After successful registration, redirect to OTP verification
+      router.push(ROUTES.AUTH.VERIFY_OTP);
     } catch (error) {
-      setError('An unexpected error occurred. Please try again.');
+      setError('Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -82,9 +74,9 @@ export function LoginForm() {
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
       <div className="flex flex-col items-center gap-2 text-center">
-        <h1 className="text-2xl font-bold">Login to your account</h1>
+        <h1 className="text-2xl font-bold">Create an account</h1>
         <p className="text-muted-foreground text-sm text-balance">
-          Enter your email below to login to your account
+          Enter your details below to create your account
         </p>
       </div>
       
@@ -95,6 +87,35 @@ export function LoginForm() {
       )}
 
       <div className="grid gap-6">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="grid gap-2">
+            <Label htmlFor="firstName">First name</Label>
+            <Input
+              id="firstName"
+              placeholder="John"
+              {...form.register('firstName')}
+              disabled={loading}
+              required
+            />
+            {form.formState.errors.firstName && (
+              <p className="text-sm text-red-500">{form.formState.errors.firstName.message}</p>
+            )}
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="lastName">Last name</Label>
+            <Input
+              id="lastName"
+              placeholder="Doe"
+              {...form.register('lastName')}
+              disabled={loading}
+              required
+            />
+            {form.formState.errors.lastName && (
+              <p className="text-sm text-red-500">{form.formState.errors.lastName.message}</p>
+            )}
+          </div>
+        </div>
+
         <div className="grid gap-3">
           <Label htmlFor="email">Email</Label>
           <Input
@@ -111,15 +132,7 @@ export function LoginForm() {
         </div>
 
         <div className="grid gap-3">
-          <div className="flex items-center">
-            <Label htmlFor="password">Password</Label>
-            <Link
-              href={ROUTES.AUTH.FORGOT_PASSWORD}
-              className="ml-auto text-sm underline-offset-4 hover:underline"
-            >
-              Forgot your password?
-            </Link>
-          </div>
+          <Label htmlFor="password">Password</Label>
           <Input
             id="password"
             type="password"
@@ -129,6 +142,20 @@ export function LoginForm() {
           />
           {form.formState.errors.password && (
             <p className="text-sm text-red-500">{form.formState.errors.password.message}</p>
+          )}
+        </div>
+
+        <div className="grid gap-3">
+          <Label htmlFor="confirmPassword">Confirm password</Label>
+          <Input
+            id="confirmPassword"
+            type="password"
+            {...form.register('confirmPassword')}
+            disabled={loading}
+            required
+          />
+          {form.formState.errors.confirmPassword && (
+            <p className="text-sm text-red-500">{form.formState.errors.confirmPassword.message}</p>
           )}
         </div>
 
@@ -162,7 +189,7 @@ export function LoginForm() {
         </div>
 
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? 'Signing In...' : 'Login'}
+          {loading ? 'Creating account...' : 'Create account'}
         </Button>
 
         <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
@@ -178,14 +205,14 @@ export function LoginForm() {
               fill="currentColor"
             />
           </svg>
-          Login with GitHub
+          Sign up with GitHub
         </Button>
       </div>
 
       <div className="text-center text-sm">
-        Don&apos;t have an account?{" "}
-        <Link href={ROUTES.AUTH.REGISTER} className="underline underline-offset-4">
-          Sign up
+        Already have an account?{" "}
+        <Link href={ROUTES.AUTH.LOGIN} className="underline underline-offset-4">
+          Sign in
         </Link>
       </div>
     </form>
