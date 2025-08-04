@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowLeft } from 'lucide-react';
 import { ROUTES } from '@/lib/constants';
+import { authService } from '@/sdk/auth';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -35,20 +36,19 @@ export function ForgotPasswordForm() {
     try {
       setLoading(true);
       setError(null);
-      
-      // TODO: Implement forgot password API call
-      console.log('Forgot password data:', data);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      await authService.initiatePasswordReset(data.email);
+
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('resetEmail', data.email);
+        sessionStorage.setItem('verificationType', 'password-reset');
+      }
       
       setSuccess(true);
-      // After successful request, redirect to OTP verification
-      setTimeout(() => {
-        router.push(`${ROUTES.AUTH.VERIFY_OTP}?mode=reset`);
-      }, 2000);
-    } catch (error) {
-      setError('Failed to send reset email. Please try again.');
+
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Failed to send reset email. Please try again.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -72,7 +72,7 @@ export function ForgotPasswordForm() {
       {success && (
         <Alert>
           <AlertDescription>
-            We've sent a verification code to your email. Please check your inbox.
+            We've sent a password reset link to your email. Please check your inbox and click the link to reset your password.
           </AlertDescription>
         </Alert>
       )}

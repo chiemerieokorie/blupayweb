@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ROUTES } from '@/lib/constants';
+import { authService } from '@/sdk/auth';
 
 const registerSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -59,13 +60,30 @@ export function RegisterForm() {
       setLoading(true);
       setError(null);
       
-      // TODO: Implement registration API call
-      console.log('Registration data:', data);
+      // Prepare registration data
+      const { confirmPassword, ...registrationData } = data;
+      
+      // TODO: Backend register endpoint needs to be added to auth.controller.ts
+      // For now, we'll call the service method which is prepared for when the endpoint is ready
+      await authService.register({
+        firstName: registrationData.firstName,
+        lastName: registrationData.lastName,
+        email: registrationData.email,
+        password: registrationData.password,
+        partnerBank: registrationData.partnerBank,
+      });
+      
+      // Store email for OTP verification
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('registrationEmail', registrationData.email);
+        sessionStorage.setItem('verificationType', 'registration');
+      }
       
       // After successful registration, redirect to OTP verification
-      router.push(ROUTES.AUTH.VERIFY_OTP);
-    } catch (error) {
-      setError('Registration failed. Please try again.');
+      router.push(`${ROUTES.AUTH.VERIFY_OTP}?mode=registration`);
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
