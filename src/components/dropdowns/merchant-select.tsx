@@ -44,7 +44,7 @@ export function MerchantSelect({
         }
         
         const response = await merchantsService.getAllMerchants(filters);
-        let merchantList = response.data || [];
+        const merchantList = response.data || [];
         
         setMerchants(merchantList);
       } catch (error) {
