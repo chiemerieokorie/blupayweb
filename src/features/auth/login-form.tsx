@@ -69,8 +69,7 @@ export function LoginForm() {
       if (result?.error) {
         setError('Invalid credentials. Please try again.');
       } else if (result?.ok) {
-        // Use window.location.href for a full page reload to ensure session is properly set
-        window.location.href = callbackUrl;
+        router.push(callbackUrl);
       }
     } catch (error) {
       setError('An unexpected error occurred. Please try again.');
