@@ -127,6 +127,12 @@ export function PartnerBankSelect({
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <span>Commission: {bank.commissionRatio ? `${(bank.commissionRatio * 100).toFixed(1)}%` : 'N/A'}</span>
+                        {bank.swiftCode && (
+                          <>
+                            <span>•</span>
+                            <span>SWIFT: {bank.swiftCode}</span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -52,7 +52,8 @@ export function BankSelect({
     if (!searchValue) return banks;
     return banks.filter(bank =>
       bank.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-      bank.code.toLowerCase().includes(searchValue.toLowerCase())
+      bank.code.toLowerCase().includes(searchValue.toLowerCase()) ||
+      (bank.swiftCode && bank.swiftCode.toLowerCase().includes(searchValue.toLowerCase()))
     );
   }, [banks, searchValue]);
 
@@ -117,7 +118,13 @@ export function BankSelect({
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>{bank.code}</span>
+                        <span>{bank.country}</span>
+                        {bank.swiftCode && (
+                          <>
+                            <span>•</span>
+                            <span>SWIFT: {bank.swiftCode}</span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>

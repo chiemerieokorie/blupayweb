@@ -69,7 +69,7 @@ export function useDevices() {
       setDevicesState(prev => ({
         ...prev,
         devices: prev.devices.map(device => 
-          device.uuid === id ? updatedDevice : device
+          device.id === id ? updatedDevice : device
         ),
         loading: false,
       }));
@@ -93,7 +93,7 @@ export function useDevices() {
       
       setDevicesState(prev => ({
         ...prev,
-        devices: prev.devices.filter(device => device.uuid !== id),
+        devices: prev.devices.filter(device => device.id !== id),
         total: prev.total - 1,
         loading: false,
       }));

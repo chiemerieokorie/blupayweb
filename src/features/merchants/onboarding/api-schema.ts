@@ -165,39 +165,39 @@ export function mapFrontendToApiFormat(frontendData: any): ApiCreateMerchant {
   };
 
   // Map frontend enum values to API enum values
-  const mapFrequency = (freq: string): "daily" | "weekly" | "monthly" => {
-    const mapping: Record<string, "daily" | "weekly" | "monthly"> = {
+  const mapFrequency = (freq: string): string => {
+    const mapping: Record<string, string> = {
       'DAILY': ApiFrequency.DAILY,
       'WEEKLY': ApiFrequency.WEEKLY,
       'MONTHLY': ApiFrequency.MONTHLY
     };
-    return mapping[freq] || ApiFrequency.DAILY;
+    return mapping[freq] || freq.toLowerCase();
   };
 
-  const mapSurcharge = (surcharge: string): "customer" | "merchant" | "customer_and_merchant" | "parent" => {
-    const mapping: Record<string, "customer" | "merchant" | "customer_and_merchant" | "parent"> = {
+  const mapSurcharge = (surcharge: string): string => {
+    const mapping: Record<string, string> = {
       'Customer': ApiSurcharge.CUSTOMER,
       'Merchant': ApiSurcharge.MERCHANT,
       'BOTH': ApiSurcharge.BOTH
     };
-    return mapping[surcharge] || ApiSurcharge.CUSTOMER;
+    return mapping[surcharge] || surcharge;
   };
 
-  const mapSettlementAccount = (account: string): "parent-bank" | "sub-merchant-bank" => {
-    const mapping: Record<string, "parent-bank" | "sub-merchant-bank"> = {
+  const mapSettlementAccount = (account: string): string => {
+    const mapping: Record<string, string> = {
       'PARENT_BANK': ApiSettlementAcctType.PARENT,
       'MERCHANT_BANK': ApiSettlementAcctType.SUB_MERCHANT
     };
-    return mapping[account] || ApiSettlementAcctType.PARENT;
+    return mapping[account] || account;
   };
 
-  const mapAccountType = (type: string): "call_account" | "current_account" | "savings" | "credit" | "mb_wallet_account" | "pls_account" | "tdr_account" => {
-    const mapping: Record<string, "call_account" | "current_account" | "savings" | "credit" | "mb_wallet_account" | "pls_account" | "tdr_account"> = {
+  const mapAccountType = (type: string): string => {
+    const mapping: Record<string, string> = {
       'CURRENT_ACCOUNT': ApiBankAccountType.CURRENT_ACCOUNT,
       'SAVINGS': ApiBankAccountType.SAVINGS,
       'CALL_ACCOUNT': ApiBankAccountType.CALL_ACCOUNT
     };
-    return mapping[type] || ApiBankAccountType.CURRENT_ACCOUNT;
+    return mapping[type] || type;
   };
 
   return {
@@ -251,7 +251,7 @@ export function mapFrontendToApiFormat(frontendData: any): ApiCreateMerchant {
     },
     momoDetails: undefined,
     ovaDetails: (() => {
-      const ovas: any[] = [];
+      const ovas = [];
       
       // Only add OVAs if they exist in the database (not our mock UUIDs)
       // For now, skip all OVAs since the database doesn't have any OVA records

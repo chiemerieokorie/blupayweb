@@ -31,7 +31,7 @@ export function AvatarUpload({
   ] = useFileUpload({
     accept: "image/*",
     onFilesChange: (newFiles) => {
-      const file = (newFiles[0]?.file as File) || null;
+      const file = newFiles[0]?.file || null;
       onFileChange?.(file);
     }
   })

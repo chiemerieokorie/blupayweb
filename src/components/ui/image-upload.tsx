@@ -40,7 +40,7 @@ export function ImageUpload({
     accept,
     maxSize,
     onFilesChange: (newFiles) => {
-      const file = (newFiles[0]?.file as File) || null;
+      const file = newFiles[0]?.file || null;
       onFileChange?.(file);
     }
   });

@@ -128,7 +128,7 @@ export const completePasswordResetAtom = atom(
       set(authErrorAtom, null);
       
       const { authService } = await import('@/sdk/auth');
-      await authService.completePasswordReset({ token, password: newPassword });
+      await authService.completePasswordReset(token, newPassword);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to reset password';
       set(authErrorAtom, message);
